@@ -33,21 +33,21 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
   box-sizing:border-box;
   backdrop-filter: blur(6px);
 }
-.header{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:16px;}
-.title{font-size:1.6rem;font-weight:700;color:var(--primary);line-height:1;text-align:left;}
-.subtitle{font-size:0.92rem;background:rgba(255,196,37,0.12);color:var(--accent);padding:6px 10px;border-radius:14px;font-weight:700;text-align:left;}
+.header{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:16px;}
+.title{font-size:1.6rem;font-weight:700;color:var(--primary);line-height:1;text-align:center;}
+.subtitle{font-size:0.92rem;background:rgba(255,196,37,0.12);color:var(--accent);padding:6px 10px;border-radius:14px;font-weight:700;text-align:center;}
 .form-row{display:flex;align-items:center;gap:12px;margin:12px 0;justify-content:space-between;}
-.label{width:40%;font-weight:700;color:var(--navy);text-align:left;}
+.label{width:45%;font-weight:700;color:var(--navy);text-align:left;}
 .label .light-label{font-weight:400;font-size:0.85rem;color:#888;margin-left:6px;}
-.controls{width:58%;display:flex;gap:8px;align-items:center;justify-content:flex-start;}
+.controls{width:55%;display:flex;gap:6px;align-items:center;justify-content:flex-end;}
 .inline-input{display:flex;gap:6px;align-items:center;}
-.input{width:60px;padding:8px;border-radius:8px;border:1px solid var(--panel-border);background:var(--input-bg);text-align:center;font-size:14px;outline:none;}
+.input{width:50px;padding:8px;border-radius:8px;border:1px solid var(--panel-border);background:var(--input-bg);text-align:center;font-size:14px;outline:none;}
 .input::-webkit-outer-spin-button, .input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.output{min-width:120px;padding:10px;border-radius:10px;background:var(--panel);border:1px solid var(--panel-border);text-align:center;font-weight:800;color:var(--navy);}
-.output.error { background: var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger-text); text-align:right; }
-.meta-link{display:block;margin-top:8px;color:var(--primary);text-decoration:underline;cursor:pointer;font-size:0.95rem;text-align:left;}
-.version{font-size:12px;color:var(--muted);margin-top:10px;text-align:left;}
-.footer-credit{font-size:13px;color:var(--muted);margin-top:6px;text-align:left;font-weight:600;}
+.output{min-width:100px;padding:10px;border-radius:10px;background:var(--panel);border:1px solid var(--panel-border);text-align:right;font-weight:800;color:var(--navy);}
+.output.error { background: var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger-text); }
+.meta-link{display:block;margin-top:8px;color:var(--primary);text-decoration:underline;cursor:pointer;font-size:0.95rem;text-align:center;}
+.version{font-size:12px;color:var(--muted);margin-top:10px;text-align:center;}
+.footer-credit{font-size:13px;color:var(--muted);margin-top:6px;text-align:center;font-weight:600;}
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:2000;}
 .modal{width:92%;max-width:760px;background:#fff;border-radius:12px;padding:18px;box-sizing:border-box;max-height:80vh;overflow:auto;}
 .modal h3{margin-top:0;}
@@ -55,8 +55,8 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 .bottom-disclaimer{position:fixed;left:0;right:0;bottom:6px;padding:0 12px;text-align:center;font-size:11px;color:var(--legal);pointer-events:none;}
 @media(max-width:460px){
   .centered{width:95vw;}
-  .input{width:50px;}
-  .output{min-width:100px;}
+  .input{width:45px;}
+  .output{min-width:90px;}
 }
 </style>
 </head>
@@ -102,7 +102,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 
     <a id="explainLink" class="meta-link" role="button">How we calculated this?</a>
 
-    <div class="version">Public Beta 1.63</div>
+    <div class="version">Public Beta 1.64</div>
     <div class="footer-credit">© 2025 @kirillfilatov</div>
   </div>
 </div>
@@ -139,7 +139,7 @@ function minutesToHHMM(mins){
 }
 function computeMaxActual(reportMinutes){
   if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60;
-  return 13*60;
+  return 11*60 + 30;
 }
 
 const reportHourEl = document.getElementById('reportHour');
