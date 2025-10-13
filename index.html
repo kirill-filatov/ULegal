@@ -33,7 +33,6 @@ footer{margin-top:16px;font-weight:600}
   <div class="card">
     <div class="title">Domestic ONLY</div>
 
-    <!-- Report Time -->
     <div class="row">
       <div class="label">Report Time</div>
       <div class="control inline-inputs">
@@ -50,7 +49,6 @@ footer{margin-top:16px;font-weight:600}
       </div>
     </div>
 
-    <!-- Scheduled Duty -->
     <div class="row">
       <div class="label">Scheduled Duty</div>
       <div class="control inline-inputs">
@@ -59,7 +57,6 @@ footer{margin-top:16px;font-weight:600}
       </div>
     </div>
 
-    <!-- Scheduled Block -->
     <div class="row">
       <div class="label">Scheduled Block</div>
       <div class="control inline-inputs">
@@ -68,7 +65,6 @@ footer{margin-top:16px;font-weight:600}
       </div>
     </div>
 
-    <!-- Scheduled Departure -->
     <div class="row">
       <div class="label">Scheduled Departure</div>
       <div class="control inline-inputs">
@@ -85,31 +81,27 @@ footer{margin-top:16px;font-weight:600}
       </div>
     </div>
 
-    <!-- Time Difference -->
     <div class="row">
       <div class="label">Time Difference</div>
       <div class="control"><div id="timeDifference" class="output">—</div></div>
     </div>
 
-    <!-- Door Closed -->
     <div class="row">
       <div class="label">Door Closed</div>
       <div class="control"><div id="doorClosed" class="output">—</div></div>
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 26</footer>
+    <footer>Version 50</footer>
   </div>
 </div>
 
 <script>
-function parseHM(hourEl, minEl){
-  const h=parseInt(hourEl.value,10);
-  const m=parseInt(minEl.value,10);
-  if(isNaN(h)&&isNaN(m)) return null;
-  return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m);
+function parseHM(hourEl,minEl){
+  const h=parseInt(hourEl.value,10)||0;
+  const m=parseInt(minEl.value,10)||0;
+  return h*60+m;
 }
-
 function clampInput(el,max){
   el.addEventListener('input',()=>{
     if(el.value.length>2) el.value=el.value.slice(0,2);
@@ -120,26 +112,17 @@ function clampInput(el,max){
     }
   });
 }
-
 ['reportHour','reportMin','dutyHours','dutyMins','blockHours','blockMins','depHour','depMin'].forEach(id=>{
   clampInput(document.getElementById(id), id.includes('Hour')?23:59);
 });
 
 function minutesToHHMM(mins){
-  if(mins==null) return '—';
   mins=((mins%1440)+1440)%1440;
   const h=String(Math.floor(mins/60)).padStart(2,'0');
   const m=String(mins%60).padStart(2,'0');
   return `${h}:${m}`;
 }
-
-function formatDuration(mins){
-  if(mins==null) return '—';
-  const h=Math.floor(mins/60);
-  const m=mins%60;
-  return `${h}h ${m}m`;
-}
-
+function formatDuration(mins){return `${Math.floor(mins/60)}h ${mins%60}m`;}
 function getOffset(el){return Number(el.selectedOptions[0].dataset.offset||0);}
 
 const reportHour=document.getElementById('reportHour');
@@ -159,41 +142,21 @@ function update(){
   const r=parseHM(reportHour,reportMin);
   const d=parseHM(dutyHours,dutyMins);
   const dep=parseHM(depHour,depMin);
-  if(r==null||d==null){diffEl.textContent='—'; doorEl.textContent='—'; return;}
+  if(isNaN(r)||isNaN(d)||isNaN(dep)){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
-  // === Time Difference: report local ===
-  const anchorLocal = (r >= 300 && r <= 1139) ? 900 : 780; // 15:00 or 13:00
-  let tdLocal = anchorLocal - d;
-  if(tdLocal<0) tdLocal+=1440;
-  diffEl.textContent = formatDuration(tdLocal);
+  const reportOffset=getOffset(reportTz);
+  const depOffset=getOffset(depTz);
 
-  if(dep != null){
-    const reportOffset = getOffset(reportTz);
-    const depOffset = getOffset(depTz);
+  // Time Difference = Scheduled Duty only
+  diffEl.textContent=formatDuration(d);
 
-    // === Robust Door Closed calculation ===
-    // 1. Convert TD to UTC minutes
-    const tdUTC = tdLocal - reportOffset;
-
-    // 2. Convert departure to UTC
-    const depUTC = dep - depOffset;
-
-    // 3. Compute Door Closed in UTC
-    const doorUTC = depUTC + tdUTC;
-
-    // 4. Convert back to departure local time
-    const doorLocal = doorUTC + depOffset;
-
-    // 5. Only modulo 1440 for HH:MM display
-    doorEl.textContent = minutesToHHMM(doorLocal);
-  } else {
-    doorEl.textContent='—';
-  }
+  // Door Closed = Scheduled Departure + Scheduled Duty + TZ delta
+  const tzDelta = depOffset - reportOffset;
+  const doorLocal = dep + d + tzDelta;
+  doorEl.textContent=minutesToHHMM(doorLocal);
 }
 
-[reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz].forEach(el=>{
-  el.addEventListener('input',update);
-});
+[reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz].forEach(el=>el.addEventListener('input',update));
 </script>
 </body>
 </html>
