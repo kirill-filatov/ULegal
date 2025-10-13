@@ -21,9 +21,8 @@
   --muted:#6F7780;
   --legal:#dfe6ea;
 }
-/* full viewport, no scroll, center fixed */
 html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); overflow:hidden;}
-.centered{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,640px);box-sizing:border-box;}
+.centered{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,640px);box-sizing:border-box;text-align:center;}
 .card{
   background:var(--card-bg);
   border:1px solid var(--card-border);
@@ -34,35 +33,28 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
   box-sizing:border-box;
   backdrop-filter: blur(6px);
 }
-/* inner layout */
-.header{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:16px;}
+.header{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:16px;}
 .title{font-size:1.6rem;font-weight:700;color:var(--primary);line-height:1;}
 .subtitle{font-size:0.92rem;background:rgba(255,196,37,0.12);color:var(--accent);padding:6px 10px;border-radius:14px;font-weight:700;}
-.form-row{display:flex;align-items:center;gap:12px;margin:12px 0;justify-content:space-between;}
-.label{width:46%;font-weight:700;color:var(--navy);text-align:left;}
+.form-row{display:flex;align-items:center;gap:12px;margin:12px 0;justify-content:center;text-align:center;}
+.label{width:100%;font-weight:700;color:var(--navy);text-align:center;}
 .label .light-label{font-weight:400;font-size:0.85rem;color:#888;margin-left:6px;}
-.controls{width:54%;display:flex;gap:8px;justify-content:flex-end;align-items:center;}
-.inline-input{display:flex;gap:8px;width:100%;align-items:center;}
+.controls{width:100%;display:flex;gap:8px;justify-content:center;align-items:center;}
+.inline-input{display:flex;gap:8px;width:100%;align-items:center;justify-content:center;}
 .input{flex:1;padding:10px 8px;border-radius:10px;border:1px solid var(--panel-border);background:var(--input-bg);text-align:center;font-size:15px;outline:none;}
 .input::-webkit-outer-spin-button, .input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .output{min-width:150px;padding:10px;border-radius:10px;background:var(--panel);border:1px solid var(--panel-border);text-align:center;font-weight:800;color:var(--navy);}
 .output.error { background: var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger-text); }
-/* meta link */
-.meta-link{display:block;margin-top:8px;color:var(--primary);text-decoration:underline;cursor:pointer;font-size:0.95rem;text-align:left;}
-.version{font-size:12px;color:var(--muted);margin-top:10px;text-align:left;}
-.footer-credit{font-size:13px;color:var(--muted);margin-top:6px;text-align:left;font-weight:600;}
-/* modal */
+.meta-link{display:block;margin-top:8px;color:var(--primary);text-decoration:underline;cursor:pointer;font-size:0.95rem;text-align:center;}
+.version{font-size:12px;color:var(--muted);margin-top:10px;text-align:center;}
+.footer-credit{font-size:13px;color:var(--muted);margin-top:6px;text-align:center;font-weight:600;}
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:2000;}
 .modal{width:92%;max-width:760px;background:#fff;border-radius:12px;padding:18px;box-sizing:border-box;max-height:80vh;overflow:auto;}
 .modal h3{margin-top:0;}
 .modal pre{background:#f7f7f7;padding:10px;border-radius:8px;white-space:pre-wrap;font-size:13px;}
-/* bottom tiny legal disclaimer, outside box */
 .bottom-disclaimer{position:fixed;left:0;right:0;bottom:6px;padding:0 12px;text-align:center;font-size:11px;color:var(--legal);pointer-events:none;}
-/* responsive tweaks */
 @media(max-width:460px){
   .centered{width:95vw;}
-  .label{width:40%;}
-  .controls{width:60%;}
   .output{min-width:120px;}
 }
 </style>
@@ -77,7 +69,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
     </div>
 
     <div class="form-row">
-      <div class="label">Report Time<span class="light-label">actual</span></div>
+      <div class="label">Report Time <span class="light-label">actual</span></div>
       <div class="controls inline-input">
         <input id="reportHour" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Report Hours" />
         <input id="reportMin"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Report Minutes" />
@@ -85,7 +77,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
     </div>
 
     <div class="form-row">
-      <div class="label">Scheduled Duty Hours<span class="light-label">scheduled</span></div>
+      <div class="label">Duty Hours</div>
       <div class="controls inline-input">
         <input id="dutyHours" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Duty Hours" />
         <input id="dutyMins"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Duty Minutes" />
@@ -93,7 +85,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
     </div>
 
     <div class="form-row">
-      <div class="label">Scheduled Departure<span class="light-label">scheduled</span></div>
+      <div class="label">Departure</div>
       <div class="controls inline-input">
         <input id="depHour" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Departure Hours" />
         <input id="depMin"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Departure Minutes" />
@@ -109,12 +101,11 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 
     <a id="explainLink" class="meta-link" role="button">How we calculated this?</a>
 
-    <div class="version">Version 61</div>
+    <div class="version">Public Beta 1.62</div>
     <div class="footer-credit">© 2025 @kirillfilatov</div>
   </div>
 </div>
 
-<!-- modal -->
 <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="modal" role="document" aria-labelledby="modalTitle">
     <h3 id="modalTitle">Calculation: Step-by-step (Report Time = actual)</h3>
@@ -123,13 +114,11 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
   </div>
 </div>
 
-<!-- bottom disclaimer (outside main card) -->
 <div class="bottom-disclaimer" id="legalDisclaimer">
   This tool is not an official United Airlines product. It is provided for informational purposes only and is not a substitute for contractual interpretation. Always confirm with the JCBA before taking operational action.
 </div>
 
 <script>
-/* ---------- Helpers ---------- */
 function pad2(n){ return String(n).padStart(2,'0'); }
 function onlyDigits(s){ return (s||'').replace(/\D/g,''); }
 function toIntSafe(s, max){ const v = onlyDigits(s); if(v==='') return NaN; let n = parseInt(v,10); if(isNaN(n)) return NaN; if(n<0) n=0; if(typeof max === 'number' && n>max) n=max; return n; }
@@ -148,11 +137,10 @@ function minutesToHHMM(mins){
   return pad2(h) + ':' + pad2(m);
 }
 function computeMaxActual(reportMinutes){
-  if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60; // 05:00-18:59 -> 15:00
-  return 13*60; // otherwise -> 13:00
+  if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60;
+  return 13*60;
 }
 
-/* ---------- Elements ---------- */
 const reportHourEl = document.getElementById('reportHour');
 const reportMinEl  = document.getElementById('reportMin');
 const dutyHoursEl  = document.getElementById('dutyHours');
@@ -165,7 +153,6 @@ const modalBackdrop= document.getElementById('modalBackdrop');
 const modalContent = document.getElementById('modalContent');
 const closeModalBtn= document.getElementById('closeModal');
 
-/* ---------- Input wiring ---------- */
 function wireInput(el, max){
   el.addEventListener('input', ()=>{
     el.value = onlyDigits(el.value);
@@ -185,12 +172,10 @@ function wireInput(el, max){
   el.addEventListener('keydown', (ev)=>{ if(ev.key.length===1 && /\D/.test(ev.key)) ev.preventDefault(); });
 }
 
-[reportHourEl, reportMinEl, dutyHoursEl, dutyMinsEl, depHourEl, depMinEl].forEach((el, idx)=>{ wireInput(el, el.id.includes('Hour')?23:59); });
+[reportHourEl, reportMinEl, dutyHoursEl, dutyMinsEl, depHourEl, depMinEl].forEach((el)=>{ wireInput(el, el.id.includes('Hour')?23:59); });
 
-/* ---------- Main update & validations ---------- */
 function update(){
   doorEl.classList.remove('error');
-
   const r = minutesFromInputs(reportHourEl, reportMinEl);
   const duty = minutesFromInputs(dutyHoursEl, dutyMinsEl);
   const dep = minutesFromInputs(depHourEl, depMinEl);
@@ -217,7 +202,6 @@ function update(){
   doorEl.textContent = minutesToHHMM(doorClosedMinutes);
 }
 
-/* ---------- Modal ---------- */
 function openModal(){
   const rH = parseInt(onlyDigits(reportHourEl.value)||'0',10);
   const rM = parseInt(onlyDigits(reportMinEl.value)||'0',10);
@@ -240,16 +224,16 @@ function openModal(){
   let html=`<p><strong>Inputs</strong></p>
 <ul>
 <li>Report Time (actual): ${reportText}</li>
-<li>Scheduled Duty: ${dutyText}</li>
-<li>Scheduled Departure: ${depText}</li>
+<li>Duty: ${dutyText}</li>
+<li>Departure: ${depText}</li>
 </ul>
 <p><strong>Step-by-step calculation</strong></p>
 <ol>
 <li>Determine Max Actual Duty based on Report Time (actual): ${reportMinutes>=300&&reportMinutes<=1139?'15:00':'13:00'}</li>
-<li>Time Difference = Max Actual − Scheduled Duty = ${Math.floor(timeDiff/60)}h ${pad2(timeDiff%60)}m</li>
-<li>Door Closed = Scheduled Departure + Time Difference = ${minutesToHHMM(doorMin)}</li>
+<li>Time Difference = Max Actual − Duty = ${Math.floor(timeDiff/60)}h ${pad2(timeDiff%60)}m</li>
+<li>Door Closed = Departure + Time Difference = ${minutesToHHMM(doorMin)}</li>
 </ol>
-<p style="font-size:13px;color:#444;">Note: Inputs should be taken from the actual Report and Scheduled snapshot values.</p>`;
+<p style="font-size:13px;color:#444;">Note: Inputs should be taken from the actual Report and Duty/Departure snapshot values.</p>`;
   modalContent.innerHTML=html;
   modalBackdrop.style.display='flex';
   modalBackdrop.setAttribute('aria-hidden','false');
