@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-GB"> <!-- en-GB enforces 24h time format -->
+<html lang="en-GB">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -55,11 +55,11 @@
       </div>
     </div>
 
-    <!-- Scheduled Duty (now hours + minutes) -->
+    <!-- Scheduled Duty -->
     <div class="row">
       <div class="label">Scheduled Duty</div>
       <div class="control inline-inputs">
-        <input id="dutyHours" type="number" min="0" max="99" placeholder="Hours" />
+        <input id="dutyHours" type="number" min="0" max="23" placeholder="Hours" />
         <input id="dutyMins" type="number" min="0" max="59" placeholder="Minutes" />
         <select id="dutyTz" class="tz-select">
           <option data-offset="-300">Eastern (UTC-05:00)</option>
@@ -76,7 +76,7 @@
     <div class="row">
       <div class="label">Scheduled Block</div>
       <div class="control inline-inputs">
-        <input id="blockHours" type="number" min="0" max="99" placeholder="Hours" />
+        <input id="blockHours" type="number" min="0" max="23" placeholder="Hours" />
         <input id="blockMins"  type="number" min="0" max="59" placeholder="Minutes" />
       </div>
     </div>
@@ -110,7 +110,7 @@
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 4</footer>
+    <footer>Version 4.5</footer>
   </div>
 </div>
 
@@ -121,8 +121,10 @@ function parseTimeToMinutes(hhmm){
   return h*60+m;
 }
 function parseHM(hoursEl,minsEl){
-  const h=parseInt(hoursEl.value||0,10),m=parseInt(minsEl.value||0,10);
-  return isNaN(h)&&isNaN(m)?null:h*60+m;
+  const h=parseInt(hoursEl.value,10);
+  const m=parseInt(minsEl.value,10);
+  if(isNaN(h)&&isNaN(m))return null;
+  return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m);
 }
 function minutesToHHMM(mins){
   if(mins==null)return '—';
@@ -139,6 +141,18 @@ function formatDuration(mins){
 }
 function getOffset(el){return Number(el.selectedOptions[0].dataset.offset||0);}
 
+// Force 24-hour input on all time inputs
+function force24hInput(el){
+  el.addEventListener('blur',()=>{
+    if(el.value){
+      const [h,m]=el.value.split(':').map(Number);
+      const hh=Math.min(Math.max(h,0),23);
+      const mm=Math.min(Math.max(m,0),59);
+      el.value=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+    }
+  });
+}
+
 const reportTime=document.getElementById('reportTime');
 const reportTz=document.getElementById('reportTz');
 const dutyHours=document.getElementById('dutyHours');
@@ -148,6 +162,8 @@ const depTime=document.getElementById('scheduledDeparture');
 const depTz=document.getElementById('departTz');
 const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
+
+[reportTime,depTime].forEach(force24hInput);
 
 function update(){
   const r=parseTimeToMinutes(reportTime.value);
@@ -170,6 +186,7 @@ function update(){
     doorEl.textContent='—';
   }
 }
+
 [reportTime,reportTz,dutyHours,dutyMins,dutyTz,depTime,depTz]
   .forEach(el=>el.addEventListener('input',update));
 </script>
