@@ -98,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 25</footer>
+    <footer>Version 26</footer>
   </div>
 </div>
 
@@ -172,10 +172,19 @@ function update(){
     const depOffset = getOffset(depTz);
 
     // === Robust Door Closed calculation ===
-    const tdUTC = tdLocal - reportOffset;        // TD in UTC
-    const depUTC = dep - depOffset;             // Departure in UTC
-    const doorUTC = depUTC + tdUTC;             // Door closed in UTC
-    const doorLocal = doorUTC + depOffset;      // Convert to departure local
+    // 1. Convert TD to UTC minutes
+    const tdUTC = tdLocal - reportOffset;
+
+    // 2. Convert departure to UTC
+    const depUTC = dep - depOffset;
+
+    // 3. Compute Door Closed in UTC
+    const doorUTC = depUTC + tdUTC;
+
+    // 4. Convert back to departure local time
+    const doorLocal = doorUTC + depOffset;
+
+    // 5. Only modulo 1440 for HH:MM display
     doorEl.textContent = minutesToHHMM(doorLocal);
   } else {
     doorEl.textContent='—';
