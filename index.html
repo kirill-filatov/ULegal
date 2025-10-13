@@ -18,8 +18,8 @@ html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:var
 .row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .label{width:160px;font-weight:700;color:#222}
 .control{flex:1;display:flex;align-items:center;gap:8px}
-input[type="number"],select{padding:8px;border-radius:8px;border:1px solid #d0d0d0;
-                            background:var(--input-bg);font-size:15px;width:70px;}
+input[type="number"]{padding:8px;border-radius:8px;border:1px solid #d0d0d0;
+                      background:var(--input-bg);font-size:15px;width:70px;}
 .inline-inputs{display:flex;gap:6px;align-items:center}
 .inline-inputs input[type="number"]{width:60px}
 .output{background:var(--panel);border:1px solid var(--panel-border);padding:8px;
@@ -38,14 +38,6 @@ footer{margin-top:16px;font-weight:600}
       <div class="control inline-inputs">
         <input id="reportHour" type="number" min="0" max="23" placeholder="HH" />
         <input id="reportMin" type="number" min="0" max="59" placeholder="MM" />
-        <select id="reportTz" class="tz-select">
-          <option data-offset="-300">Eastern (UTC-05:00)</option>
-          <option data-offset="-360">Central (UTC-06:00)</option>
-          <option data-offset="-420">Mountain (UTC-07:00)</option>
-          <option data-offset="-480">Pacific (UTC-08:00)</option>
-          <option data-offset="-540">Alaska (UTC-09:00)</option>
-          <option data-offset="-600">Hawaii (UTC-10:00)</option>
-        </select>
       </div>
     </div>
 
@@ -58,26 +50,10 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="row">
-      <div class="label">Scheduled Block (window)</div>
-      <div class="control inline-inputs">
-        <input id="blockHours" type="number" min="0" max="23" placeholder="Hours" />
-        <input id="blockMins" type="number" min="0" max="59" placeholder="Minutes" />
-      </div>
-    </div>
-
-    <div class="row">
       <div class="label">Scheduled Departure</div>
       <div class="control inline-inputs">
         <input id="depHour" type="number" min="0" max="23" placeholder="HH" />
         <input id="depMin" type="number" min="0" max="59" placeholder="MM" />
-        <select id="departTz" class="tz-select">
-          <option data-offset="-300">Eastern (UTC-05:00)</option>
-          <option data-offset="-360">Central (UTC-06:00)</option>
-          <option data-offset="-420">Mountain (UTC-07:00)</option>
-          <option data-offset="-480">Pacific (UTC-08:00)</option>
-          <option data-offset="-540">Alaska (UTC-09:00)</option>
-          <option data-offset="-600">Hawaii (UTC-10:00)</option>
-        </select>
       </div>
     </div>
 
@@ -91,8 +67,8 @@ footer{margin-top:16px;font-weight:600}
       <div class="control"><div id="doorClosed" class="output">—</div></div>
     </div>
 
-    <div class="note">All times use 24-hour (military) format. Time Difference = max actual − scheduled duty. Door Closed = scheduled departure + time difference + TZ adjustment.</div>
-    <footer>Version 54</footer>
+    <div class="note">Time Difference = max actual − scheduled duty. Door Closed = scheduled departure + time difference.</div>
+    <footer>Version 55</footer>
   </div>
 </div>
 
@@ -115,8 +91,7 @@ function clampInput(el,max){
   });
 }
 
-['reportHour','reportMin','dutyHours','dutyMins','blockHours','blockMins','depHour','depMin']
-.forEach(id=>clampInput(document.getElementById(id), id.includes('Hour')?23:59));
+['reportHour','reportMin','dutyHours','dutyMins','depHour','depMin'].forEach(id=>clampInput(document.getElementById(id), id.includes('Hour')?23:59));
 
 function minutesToHHMM(mins){
   mins = Math.round(mins);
@@ -134,18 +109,12 @@ function formatDuration(mins){
   return `${h}h ${m}m`;
 }
 
-function getOffset(el){ return Number(el.selectedOptions[0].dataset.offset||0); }
-
 const reportHour=document.getElementById('reportHour');
 const reportMin=document.getElementById('reportMin');
-const reportTz=document.getElementById('reportTz');
 const dutyHours=document.getElementById('dutyHours');
 const dutyMins=document.getElementById('dutyMins');
-const blockHours=document.getElementById('blockHours');
-const blockMins=document.getElementById('blockMins');
 const depHour=document.getElementById('depHour');
 const depMin=document.getElementById('depMin');
-const depTz=document.getElementById('departTz');
 const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
 
@@ -157,31 +126,23 @@ function computeMaxActual(reportMinutes){
 function update(){
   const r = parseHM(reportHour, reportMin);
   const duty = parseHM(dutyHours, dutyMins);
-  const block = parseHM(blockHours, blockMins);
   const dep = parseHM(depHour, depMin);
 
-  if(isNaN(r) || isNaN(duty) || isNaN(block) || isNaN(dep)){
+  if(isNaN(r) || isNaN(duty) || isNaN(dep)){
     diffEl.textContent = '—';
     doorEl.textContent = '—';
     return;
   }
 
-  const reportOffset = getOffset(reportTz);
-  const depOffset = getOffset(depTz);
-
-  // 1) Time Difference = Max Actual − Scheduled Duty
   const maxActual = computeMaxActual(r);
   const timeDiff = maxActual - duty;
   diffEl.textContent = formatDuration(timeDiff);
 
-  // 2) Door Closed = Scheduled Departure + Time Difference + TZ delta
-  const tzDelta = depOffset - reportOffset;
-  const doorClosedMinutes = dep + timeDiff + tzDelta;
+  const doorClosedMinutes = dep + timeDiff;
   doorEl.textContent = minutesToHHMM(doorClosedMinutes);
 }
 
-[reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz]
-.forEach(el=>el.addEventListener('input', update));
+[reportHour,reportMin,dutyHours,dutyMins,depHour,depMin].forEach(el=>el.addEventListener('input', update));
 
 update();
 </script>
