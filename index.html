@@ -98,37 +98,33 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 9</footer>
+    <footer>Version 10</footer>
   </div>
 </div>
 
 <script>
-// Parse HH/MM inputs to minutes
-function parseHMInputs(hourEl, minEl){ 
-  const h=parseInt(hourEl.value,10); 
-  const m=parseInt(minEl.value,10); 
-  if(isNaN(h)&&isNaN(m)) return null; 
-  return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m); 
+function parseHM(hourEl, minEl){
+  const h=parseInt(hourEl.value,10);
+  const m=parseInt(minEl.value,10);
+  if(isNaN(h)&&isNaN(m)) return null;
+  return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m);
 }
 
-// Clamp value to 0–max and max 2 digits
-function clampInput(el, max){
+function clampInput(el,max){
   el.addEventListener('input',()=>{
-    if(el.value.length>2) el.value = el.value.slice(0,2);
-    let v = parseInt(el.value,10);
+    if(el.value.length>2) el.value=el.value.slice(0,2);
+    let v=parseInt(el.value,10);
     if(!isNaN(v)){
-      if(v>max) el.value = max;
-      if(v<0) el.value = 0;
+      if(v>max) el.value=max;
+      if(v<0) el.value=0;
     }
   });
 }
 
-// Apply to all numeric fields
 ['reportHour','reportMin','dutyHours','dutyMins','blockHours','blockMins','depHour','depMin'].forEach(id=>{
   clampInput(document.getElementById(id), id.includes('Hour')?23:59);
 });
 
-// Minutes → HH:MM string
 function minutesToHHMM(mins){
   if(mins==null) return '—';
   mins=((mins%1440)+1440)%1440;
@@ -137,7 +133,6 @@ function minutesToHHMM(mins){
   return `${h}:${m}`;
 }
 
-// Duration formatting
 function formatDuration(mins){
   if(mins==null) return '—';
   const h=Math.floor(mins/60);
@@ -147,7 +142,6 @@ function formatDuration(mins){
 
 function getOffset(el){return Number(el.selectedOptions[0].dataset.offset||0);}
 
-// Elements
 const reportHour=document.getElementById('reportHour');
 const reportMin=document.getElementById('reportMin');
 const reportTz=document.getElementById('reportTz');
@@ -162,29 +156,34 @@ const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
 
 function update(){
-  const r=parseHMInputs(reportHour,reportMin);
-  const d=parseHMInputs(dutyHours,dutyMins);
-  const dep=parseHMInputs(depHour,depMin);
+  const r=parseHM(reportHour,reportMin);
+  const d=parseHM(dutyHours,dutyMins);
+  const dep=parseHM(depHour,depMin);
   if(r==null||d==null){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
-  // Time Difference calculation
-  const anchor = (r>=300 && r<=1139)?900:780; // 15:00 / 13:00
-  let td = anchor - d;
-  if(td<0) td+=1440;
-  diffEl.textContent = formatDuration(td);
+  // Convert report time to UTC
+  const rUTC = r - getOffset(reportTz);
 
-  // Door Closed calculation respecting both time zones
+  // Anchor in UTC
+  const localAnchor = (r>=300 && r<=1139)?900:780; // local
+  const anchorUTC = localAnchor - getOffset(reportTz);
+
+  // Time difference
+  let td = anchorUTC - rUTC;
+  if(td<0) td+=1440;
+  diffEl.textContent=formatDuration(td);
+
   if(dep!=null){
-    const depUTC = dep - getOffset(depTz);       // departure in UTC
-    const doorUTC = depUTC + td;                // add time difference in minutes
-    const localDoor = doorUTC + getOffset(depTz); // convert to local dep timezone
-    doorEl.textContent = minutesToHHMM(localDoor);
+    const depUTC = dep - getOffset(depTz); // departure in UTC
+    const doorUTC = depUTC + td;          // door closed in UTC
+    const doorLocal = doorUTC + getOffset(depTz);
+    doorEl.textContent = minutesToHHMM(doorLocal);
   } else {
     doorEl.textContent='—';
   }
 }
 
-// Add event listeners for **all inputs including TZ selects**
+// Add listeners for all inputs including TZ selects
 [reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz]
   .forEach(el=>el.addEventListener('input',update));
 </script>
