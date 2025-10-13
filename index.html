@@ -5,33 +5,27 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Domestic Duty Calculator (USA zones)</title>
 <style>
-  :root{
-    --card:#ffffff;--bg:#f7f8fa;--accent:#fcb900;--muted:#666;
-    --panel:#eef4ff;--panel-border:#c5d8ff;--input-bg:#f9f9f9;
-  }
-  html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg)}
-  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px}
-  .card{width:480px;background:var(--card);padding:24px;border-radius:12px;
-        box-shadow:0 10px 30px rgba(0,0,0,0.08)}
-  .title{background:var(--accent);padding:10px;border-radius:8px;text-align:center;
-         font-weight:700;margin-bottom:18px}
-  .row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-  .label{width:160px;font-weight:700;color:#222}
-  .control{flex:1;display:flex;align-items:center;gap:8px}
-  input[type="time"],select,input[type="number"]{
-    padding:8px;border-radius:8px;border:1px solid #d0d0d0;
-    background:var(--input-bg);font-size:15px;
-  }
-  input[type="time"]::-webkit-datetime-edit-ampm-field{display:none;}
-  input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(0.5);}
-  input[type="time"]{appearance:none;-webkit-appearance:none;}
-  .tz-select{min-width:170px}
-  .inline-inputs{display:flex;gap:6px;align-items:center}
-  .inline-inputs input[type="number"]{width:86px}
-  .output{background:var(--panel);border:1px solid var(--panel-border);padding:8px;
-          border-radius:8px;font-weight:700}
-  .note,footer{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}
-  footer{margin-top:16px;font-weight:600}
+:root{
+  --card:#ffffff;--bg:#f7f8fa;--accent:#fcb900;--muted:#666;
+  --panel:#eef4ff;--panel-border:#c5d8ff;--input-bg:#f9f9f9;
+}
+html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg)}
+.wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px}
+.card{width:480px;background:var(--card);padding:24px;border-radius:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08)}
+.title{background:var(--accent);padding:10px;border-radius:8px;text-align:center;
+       font-weight:700;margin-bottom:18px}
+.row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.label{width:160px;font-weight:700;color:#222}
+.control{flex:1;display:flex;align-items:center;gap:8px}
+input[type="number"],select{padding:8px;border-radius:8px;border:1px solid #d0d0d0;
+                            background:var(--input-bg);font-size:15px;width:70px;}
+.inline-inputs{display:flex;gap:6px;align-items:center}
+.inline-inputs input[type="number"]{width:60px}
+.output{background:var(--panel);border:1px solid var(--panel-border);padding:8px;
+        border-radius:8px;font-weight:700}
+.note,footer{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}
+footer{margin-top:16px;font-weight:600}
 </style>
 </head>
 <body>
@@ -39,11 +33,12 @@
   <div class="card">
     <div class="title">Domestic ONLY</div>
 
-    <!-- Report -->
+    <!-- Report Time -->
     <div class="row">
       <div class="label">Report Time</div>
-      <div class="control">
-        <input id="reportTime" type="time" step="60" inputmode="numeric" />
+      <div class="control inline-inputs">
+        <input id="reportHour" type="number" min="0" max="23" placeholder="HH" />
+        <input id="reportMin" type="number" min="0" max="59" placeholder="MM" />
         <select id="reportTz" class="tz-select">
           <option data-offset="-300">Eastern (UTC-05:00)</option>
           <option data-offset="-360">Central (UTC-06:00)</option>
@@ -77,7 +72,7 @@
       <div class="label">Scheduled Block</div>
       <div class="control inline-inputs">
         <input id="blockHours" type="number" min="0" max="23" placeholder="Hours" />
-        <input id="blockMins"  type="number" min="0" max="59" placeholder="Minutes" />
+        <input id="blockMins" type="number" min="0" max="59" placeholder="Minutes" />
       </div>
     </div>
 
@@ -90,8 +85,9 @@
     <!-- Scheduled Departure -->
     <div class="row">
       <div class="label">Scheduled Departure</div>
-      <div class="control">
-        <input id="scheduledDeparture" type="time" step="60" inputmode="numeric" />
+      <div class="control inline-inputs">
+        <input id="depHour" type="number" min="0" max="23" placeholder="HH" />
+        <input id="depMin" type="number" min="0" max="59" placeholder="MM" />
         <select id="departTz" class="tz-select">
           <option data-offset="-300">Eastern (UTC-05:00)</option>
           <option data-offset="-360">Central (UTC-06:00)</option>
@@ -110,84 +106,72 @@
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 4.5</footer>
+    <footer>Version 5</footer>
   </div>
 </div>
 
 <script>
-function parseTimeToMinutes(hhmm){
-  if(!hhmm)return null;
-  const [h,m]=hhmm.split(':').map(Number);
-  return h*60+m;
-}
-function parseHM(hoursEl,minsEl){
-  const h=parseInt(hoursEl.value,10);
-  const m=parseInt(minsEl.value,10);
-  if(isNaN(h)&&isNaN(m))return null;
+// Convert HH/MM inputs to total minutes
+function parseHMInputs(hourEl, minEl){
+  const h = parseInt(hourEl.value,10);
+  const m = parseInt(minEl.value,10);
+  if(isNaN(h)&&isNaN(m)) return null;
   return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m);
 }
+
+// Minutes → HH:MM string
 function minutesToHHMM(mins){
-  if(mins==null)return '—';
+  if(mins==null) return '—';
   mins=((mins%1440)+1440)%1440;
-  const h=String(Math.floor(mins/60)).padStart(2,'0');
-  const m=String(mins%60).padStart(2,'0');
+  const h = String(Math.floor(mins/60)).padStart(2,'0');
+  const m = String(mins%60).padStart(2,'0');
   return `${h}:${m}`;
 }
+
+// Duration formatting
 function formatDuration(mins){
-  if(mins==null)return '—';
-  const h=Math.floor(mins/60);
-  const m=mins%60;
+  if(mins==null) return '—';
+  const h = Math.floor(mins/60);
+  const m = mins%60;
   return `${h}h ${m}m`;
 }
+
 function getOffset(el){return Number(el.selectedOptions[0].dataset.offset||0);}
 
-// Force 24-hour input on all time inputs
-function force24hInput(el){
-  el.addEventListener('blur',()=>{
-    if(el.value){
-      const [h,m]=el.value.split(':').map(Number);
-      const hh=Math.min(Math.max(h,0),23);
-      const mm=Math.min(Math.max(m,0),59);
-      el.value=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
-    }
-  });
-}
-
-const reportTime=document.getElementById('reportTime');
+// Elements
+const reportHour=document.getElementById('reportHour');
+const reportMin=document.getElementById('reportMin');
 const reportTz=document.getElementById('reportTz');
 const dutyHours=document.getElementById('dutyHours');
 const dutyMins=document.getElementById('dutyMins');
 const dutyTz=document.getElementById('dutyTz');
-const depTime=document.getElementById('scheduledDeparture');
+const depHour=document.getElementById('depHour');
+const depMin=document.getElementById('depMin');
 const depTz=document.getElementById('departTz');
 const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
 
-[reportTime,depTime].forEach(force24hInput);
-
 function update(){
-  const r=parseTimeToMinutes(reportTime.value);
-  const d=parseHM(dutyHours,dutyMins);
-  const dep=parseTimeToMinutes(depTime.value);
+  const r=parseHMInputs(reportHour, reportMin);
+  const d=parseHMInputs(dutyHours,dutyMins);
+  const dep=parseHMInputs(depHour,depMin);
   if(r==null||d==null){diffEl.textContent='—';doorEl.textContent='—';return;}
 
   // Formula: if Report between 05:00–18:59 → (15:00 − Duty) else (13:00 − Duty)
-  const anchor=(r>=300&&r<=1139)?900:780; // 15:00 / 13:00
-  let td=anchor-d;
-  if(td<0)td+=1440;
-  diffEl.textContent=formatDuration(td);
+  const anchor=(r>=300 && r<=1139)?900:780; // 15:00 / 13:00
+  let td = anchor-d;
+  if(td<0) td+=1440;
+  diffEl.textContent = formatDuration(td);
 
   if(dep!=null){
-    const depUTC=dep-getOffset(depTz);
-    const doorUTC=depUTC+td;
-    const localDoor=doorUTC+getOffset(depTz);
-    doorEl.textContent=minutesToHHMM(localDoor);
-  }else{
-    doorEl.textContent='—';
-  }
+    const depUTC = dep-getOffset(depTz);
+    const doorUTC = depUTC + td;
+    const localDoor = doorUTC + getOffset(depTz);
+    doorEl.textContent = minutesToHHMM(localDoor);
+  } else { doorEl.textContent='—'; }
 }
 
-[reportTime,reportTz,dutyHours,dutyMins,dutyTz,depTime,depTz]
+[reportHour, reportMin, reportTz, dutyHours, dutyMins, dutyTz, depHour, depMin, depTz]
   .forEach(el=>el.addEventListener('input',update));
 </script>
 </body>
