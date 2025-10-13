@@ -98,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 15</footer>
+    <footer>Version 16</footer>
   </div>
 </div>
 
@@ -155,7 +155,7 @@ const depTz=document.getElementById('departTz');
 const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
 
-let lastDepUTC = null; // store UTC of departure to preserve the same moment when TZ changes
+let lastDepUTC = null;
 
 function update(){
   const r=parseHM(reportHour,reportMin);
@@ -163,17 +163,18 @@ function update(){
   const dep=parseHM(depHour,depMin);
   if(r==null||d==null){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
-  // Time Difference purely local
+  // Time Difference adjusted for report TZ
   const anchorLocal = (r>=300 && r<=1139)?900:780; // 15:00 or 13:00
-  let td = anchorLocal - d;
+  const rUTC = r - getOffset(reportTz);
+  const anchorUTC = anchorLocal - getOffset(reportTz);
+  let td = anchorUTC - rUTC - d; // subtract duty duration
   if(td<0) td += 1440;
   diffEl.textContent = formatDuration(td);
 
   // Door Closed
   if(dep!=null){
     const depOffset = getOffset(depTz);
-    // If lastDepUTC exists, use it, else calculate from current dep input
-    if(lastDepUTC===null) lastDepUTC = dep - depOffset;
+    if(lastDepUTC===null || lastDepUTC===undefined) lastDepUTC = dep - depOffset;
     const doorUTC = lastDepUTC + td;
     const doorLocal = doorUTC + depOffset;
     doorEl.textContent = minutesToHHMM(doorLocal);
@@ -183,10 +184,9 @@ function update(){
   }
 }
 
-// Listeners for all inputs including TZ selectors
+// Listeners for all inputs
 [reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz].forEach(el=>{
   el.addEventListener('input',()=>{
-    // reset depUTC if dep number changes
     if(el===depHour||el===depMin) lastDepUTC=null;
     update();
   });
