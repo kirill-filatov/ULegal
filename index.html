@@ -98,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 23</footer>
+    <footer>Version 24</footer>
   </div>
 </div>
 
@@ -167,16 +167,13 @@ function update(){
   if(td<0) td += 1440;
   diffEl.textContent = formatDuration(td);
 
-  // === Door Closed: consider TZ difference ===
+  // === Door Closed: correct TZ difference formula ===
   if(dep != null){
     const reportOffset = getOffset(reportTz);
     const depOffset = getOffset(depTz);
 
-    // Calculate TZ difference in minutes
     const tzDiff = depOffset - reportOffset;
-
-    // Door Closed = departure + TD + TZ difference
-    const doorLocal = dep + td + tzDiff;
+    const doorLocal = dep + td - tzDiff; // subtract TZ difference to reflect earlier/later correctly
     doorEl.textContent = minutesToHHMM(doorLocal);
   } else {
     doorEl.textContent='—';
