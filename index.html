@@ -98,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 17</footer>
+    <footer>Version 19</footer>
   </div>
 </div>
 
@@ -155,44 +155,37 @@ const depTz=document.getElementById('departTz');
 const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
 
-let lastDepUTC = null;
-
 function update(){
   const r=parseHM(reportHour,reportMin);
   const d=parseHM(dutyHours,dutyMins);
   const dep=parseHM(depHour,depMin);
   if(r==null||d==null){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
-  // Time Difference in local report minutes
-  const anchorLocal = (r>=300 && r<=1139)?900:780; // 15:00 or 13:00
+  // === Time Difference: local calculation only ===
+  const anchorLocal = (r >= 300 && r <= 1139) ? 900 : 780; // 15:00 or 13:00
   let td = anchorLocal - d;
   if(td<0) td += 1440;
   diffEl.textContent = formatDuration(td);
 
-  // Door Closed
-  if(dep!=null){
+  // === Door Closed: convert to UTC based on both report and departure TZ ===
+  if(dep != null){
     const depOffset = getOffset(depTz);
     const reportOffset = getOffset(reportTz);
-    // If lastDepUTC is null, calculate from current dep input and dep TZ
-    if(lastDepUTC===null) lastDepUTC = dep - depOffset;
-
-    // Adjust td if report TZ changed
-    const anchorShift = reportOffset - getOffset(reportTz); // will be zero in this implementation
-    const doorUTC = lastDepUTC + td;
+    // Departure in UTC
+    const depUTC = dep - depOffset;
+    // Door Closed = departure UTC + TD
+    const doorUTC = depUTC + td;
+    // Door Closed in departure local time
     const doorLocal = doorUTC + depOffset;
     doorEl.textContent = minutesToHHMM(doorLocal);
   } else {
     doorEl.textContent='—';
-    lastDepUTC=null;
   }
 }
 
-// Listeners for all inputs
+// Add listeners
 [reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz].forEach(el=>{
-  el.addEventListener('input',()=>{
-    if(el===depHour||el===depMin) lastDepUTC=null;
-    update();
-  });
+  el.addEventListener('input',update);
 });
 
 </script>
