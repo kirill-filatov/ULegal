@@ -6,10 +6,10 @@
 <title>Maximum Duty Calculator</title>
 <style>
 :root{
-  --primary:#005DAA;   /* United blue */
-  --accent:#FFC425;    /* United gold */
+  --primary:#005DAA; /* United blue */
+  --accent:#FFC425; /* United gold */
   --bg:#F0F2F5;
-  --card:#FFFFFFCC;    /* White with transparency */
+  --card:#FFFFFFCC; /* transparent */
   --input-bg:#F7F9FBCC;
   --text-dark:#222;
   --text-muted:#666;
@@ -18,13 +18,14 @@
   --grey:#A0A0A0;
   --info-bg:#ffffffee;
   --info-border:#CCCCCC;
+  --warning-bg:#FFC42533;
 }
-html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);}
-.wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px;}
+html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);overflow:hidden;}
+.wrap{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;padding:0;}
 .card{width:90%;max-width:500px;background:var(--card);padding:30px;border-radius:20px;
-      box-shadow:0 20px 50px rgba(0,0,0,0.1);text-align:center;}
-.title-app{font-size:2em;font-weight:700;color:var(--primary);margin-bottom:4px;}
-.subtitle{color:var(--accent);font-weight:600;margin-bottom:20px;}
+      box-shadow:0 20px 50px rgba(0,0,0,0.1);text-align:center;box-sizing:border-box;}
+.title-app{font-size:2em;font-weight:700;color:var(--primary);margin-bottom:6px;}
+.subtitle{display:inline-block;background:var(--warning-bg);color:var(--accent);font-weight:700;padding:2px 10px;border-radius:12px;margin-bottom:20px;font-size:0.9em;}
 .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;position:relative;}
 .label{width:150px;font-weight:600;color:var(--text-dark);text-align:left;}
 .bold-label{font-weight:700;}
@@ -34,16 +35,17 @@ input[type="number"]{flex:1;padding:10px;border-radius:10px;border:1px solid var
 .inline-inputs{display:flex;gap:6px;align-items:center;flex:1;}
 .inline-inputs input[type="number"]{flex:1;}
 .output{background:var(--panel);border:1px solid var(--panel-border);padding:10px;
-        border-radius:10px;font-weight:700;font-size:16px;}
-footer{margin-top:15px;color:var(--grey);font-weight:500;font-size:13px;}
-.version{font-size:12px;color:var(--grey);margin-top:4px;}
+        border-radius:10px;font-weight:700;font-size:16px;min-width:110px;}
+footer{margin-top:10px;color:var(--grey);font-weight:500;font-size:13px;}
+.version{font-size:12px;color:var(--grey);margin-bottom:2px;}
 .info-icon{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--primary);
            color:#fff;font-size:12px;line-height:16px;text-align:center;cursor:pointer;position:relative;}
 .info-tooltip{position:absolute;top:-5px;left:100%;background:var(--info-bg);border:1px solid var(--info-border);
               padding:6px 10px;border-radius:6px;white-space:nowrap;font-size:12px;color:var(--text-dark);
               display:none;z-index:10;}
 .info-icon:hover .info-tooltip,.info-icon:focus .info-tooltip{display:block;}
-@media(max-width:500px){.card{padding:20px;margin:10px;width:95%;}}
+.legal-disclaimer{font-size:8px;color:#f0f2f5;padding-top:2px;text-align:center;}
+@media(max-width:500px){.card{padding:20px;margin:0;width:95%;}}
 </style>
 </head>
 <body>
@@ -53,7 +55,7 @@ footer{margin-top:15px;color:var(--grey);font-weight:500;font-size:13px;}
     <div class="subtitle">Domestic Only</div>
 
     <div class="row">
-      <div class="label bold-label">Report Hours 
+      <div class="label bold-label">Report Time 
         <span class="info-icon" tabindex="0">i
           <span class="info-tooltip">All times should be entered from originally Scheduled snapshot, not from Updated.</span>
         </span>
@@ -88,15 +90,17 @@ footer{margin-top:15px;color:var(--grey);font-weight:500;font-size:13px;}
       </div>
     </div>
 
-    <!-- Hidden internal time difference -->
-    <div style="display:none;"><div id="timeDifference"></div></div>
-
     <div class="row">
       <div class="label bold-label">Door Closed</div>
       <div class="control"><div id="doorClosed" class="output">—</div></div>
     </div>
 
-    <footer>© 2025 @kirillfilatov<div class="version">Version 57</div></footer>
+    <div class="version">Version 58</div>
+    <footer>@kirillfilatov</footer>
+    <div class="legal-disclaimer">This is not an official United tool and should be used only for informational purposes. Always confirm with the Collective Bargaining Flight Attendant Contract.</div>
+
+    <!-- Hidden internal time difference -->
+    <div style="display:none;"><div id="timeDifference"></div></div>
   </div>
 </div>
 
@@ -112,11 +116,12 @@ function parseHM(hourEl,minEl){
 
 function clampInput(el,max){
   el.addEventListener('input',()=>{
+    el.value = el.value.replace(/\D/g,''); // remove non-digit
     let v=parseInt(el.value,10);
     if(isNaN(v)) return;
     if(v<0) v=0;
     if(v>max) v=max;
-    el.value = String(v).padStart(2,'0'); // auto-format to 2 digits
+    el.value = String(v).padStart(2,'0');
   });
 }
 
@@ -148,21 +153,27 @@ const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
 
 function update(){
-  const r=parseHM(reportHour,reportMin);
-  const duty=parseHM(dutyHours,dutyMins);
-  const dep=parseHM(depHour,depMin);
+  try{
+    const r=parseHM(reportHour,reportMin);
+    const duty=parseHM(dutyHours,dutyMins);
+    const dep=parseHM(depHour,depMin);
 
-  if(isNaN(r) || isNaN(duty) || isNaN(dep)){
-    doorEl.textContent='—';
-    return;
+    if(isNaN(r) || isNaN(duty) || isNaN(dep)){
+      doorEl.textContent='—';
+      return;
+    }
+
+    const maxActual=computeMaxActual(r);
+    const timeDiff=maxActual-duty;
+    diffEl.textContent=timeDiff;
+
+    if(timeDiff<0) throw new Error("Invalid calculation");
+
+    const doorClosedMinutes=dep+timeDiff;
+    doorEl.textContent=minutesToHHMM(doorClosedMinutes);
+  } catch(e){
+    doorEl.textContent='Error 001';
   }
-
-  const maxActual=computeMaxActual(r);
-  const timeDiff=maxActual-duty; // internal only
-  diffEl.textContent=timeDiff;
-
-  const doorClosedMinutes=dep+timeDiff;
-  doorEl.textContent=minutesToHHMM(doorClosedMinutes);
 }
 
 [reportHour,reportMin,dutyHours,dutyMins,depHour,depMin].forEach(el=>el.addEventListener('input',update));
