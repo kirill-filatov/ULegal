@@ -1,41 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Domestic Duty Calculator</title>
+<title>Domestic Duty Calculator (USA zones)</title>
 <style>
   :root{
-    --card-bg:#fff;
-    --muted:#777;
-    --accent:#fcb900;
-    --panel:#eef4ff;
-    --panel-border:#c5d8ff;
-    --input-bg:#f9f9f9;
+    --card:#ffffff; --bg:#f7f8fa; --accent:#fcb900; --muted:#666;
+    --panel:#eef4ff; --panel-border:#c5d8ff; --input-bg:#f9f9f9;
   }
-  html,body{height:100%;margin:0;font-family:Inter, Arial, sans-serif;background:#f7f8fa}
+  html,body{height:100%;margin:0;font-family:Inter, Arial, sans-serif;background:var(--bg)}
   .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px}
-  .card{
-    width:420px;background:var(--card-bg);padding:26px;border-radius:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.08);
-  }
-  .title{background:var(--accent);padding:10px;border-radius:8px;text-align:center;font-weight:600;margin-bottom:20px}
+  .card{width:460px;background:var(--card);padding:24px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.08)}
+  .title{background:var(--accent);padding:10px;border-radius:8px;text-align:center;font-weight:700;margin-bottom:18px}
   .row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-  .label{width:150px;font-weight:700;color:#222}
+  .label{width:160px;font-weight:700;color:#222}
   .control{flex:1;display:flex;align-items:center;gap:8px}
   input[type="time"], select, input[type="number"]{
-    padding:8px;border-radius:8px;border:1px solid #cfcfcf;background:var(--input-bg);font-size:15px;
+    padding:8px;border-radius:8px;border:1px solid #d0d0d0;background:var(--input-bg);font-size:15px;
   }
-  .tz-select{min-width:140px}
-  .small{font-size:13px;color:var(--muted)}
-  .output{
-    background:var(--panel);border:1px solid var(--panel-border);padding:8px;border-radius:8px;font-weight:600;
-  }
+  .tz-select{min-width:170px}
   .inline-inputs{display:flex;gap:6px;align-items:center}
-  .inline-inputs input[type="number"]{width:72px}
-  .muted-note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
-  footer{font-size:12px;color:var(--muted);text-align:center;margin-top:14px}
-  .flex-between{display:flex;justify-content:space-between;align-items:center}
+  .inline-inputs input[type="number"]{width:86px}
+  .output{background:var(--panel);border:1px solid var(--panel-border);padding:8px;border-radius:8px;font-weight:700}
+  .note{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}
+  footer{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
 </style>
 </head>
 <body>
@@ -43,58 +32,50 @@
   <div class="card">
     <div class="title">Domestic ONLY</div>
 
-    <!-- Report Time -->
+    <!-- Report -->
     <div class="row">
-      <div class="label">Report Time</div>
+      <div class="label">Report Time (24h)</div>
       <div class="control">
         <input id="reportTime" type="time" />
-        <select id="reportTz" class="tz-select" title="Timezone (UTC offset)">
-          <!-- options: label (offset minutes) -->
-          <option value="+0" data-offset="0">UTC (UTC+00:00)</option>
-          <option value="-5" data-offset="-300">America/New_York (UTC-05:00)</option>
-          <option value="-4" data-offset="-240">America/Toronto (UTC-04:00)</option>
-          <option value="-8" data-offset="-480">America/Los_Angeles (UTC-08:00)</option>
-          <option value="+1" data-offset="60">Europe/Berlin (UTC+01:00)</option>
-          <option value="+3" data-offset="180">Europe/Moscow (UTC+03:00)</option>
-          <option value="+5.5" data-offset="330">Asia/Kolkata (UTC+05:30)</option>
-          <option value="+4" data-offset="240">Asia/Dubai (UTC+04:00)</option>
-          <option value="+8" data-offset="480">Asia/Shanghai (UTC+08:00)</option>
-          <option value="+10" data-offset="600">Australia/Sydney (UTC+10:00)</option>
+        <select id="reportTz" class="tz-select" title="Report timezone">
+          <!-- data-offset is minutes to add to UTC to get LOCAL; we store offset as local UTC offset in minutes -->
+          <option data-offset="-300">Eastern (UTC-05:00)</option>
+          <option data-offset="-360">Central (UTC-06:00)</option>
+          <option data-offset="-420">Mountain (UTC-07:00)</option>
+          <option data-offset="-480">Pacific (UTC-08:00)</option>
+          <option data-offset="-540">Alaska (UTC-09:00)</option>
+          <option data-offset="-600">Hawaii (UTC-10:00)</option>
         </select>
       </div>
     </div>
 
     <!-- Scheduled Duty -->
     <div class="row">
-      <div class="label">Scheduled Duty</div>
+      <div class="label">Scheduled Duty (24h)</div>
       <div class="control">
         <input id="scheduledDuty" type="time" />
-        <select id="dutyTz" class="tz-select" title="Timezone (UTC offset)">
-          <option value="+0" data-offset="0">UTC (UTC+00:00)</option>
-          <option value="-5" data-offset="-300">America/New_York (UTC-05:00)</option>
-          <option value="-4" data-offset="-240">America/Toronto (UTC-04:00)</option>
-          <option value="-8" data-offset="-480">America/Los_Angeles (UTC-08:00)</option>
-          <option value="+1" data-offset="60">Europe/Berlin (UTC+01:00)</option>
-          <option value="+3" data-offset="180">Europe/Moscow (UTC+03:00)</option>
-          <option value="+5.5" data-offset="330">Asia/Kolkata (UTC+05:30)</option>
-          <option value="+4" data-offset="240">Asia/Dubai (UTC+04:00)</option>
-          <option value="+8" data-offset="480">Asia/Shanghai (UTC+08:00)</option>
-          <option value="+10" data-offset="600">Australia/Sydney (UTC+10:00)</option>
+        <select id="dutyTz" class="tz-select" title="Duty timezone">
+          <option data-offset="-300">Eastern (UTC-05:00)</option>
+          <option data-offset="-360">Central (UTC-06:00)</option>
+          <option data-offset="-420">Mountain (UTC-07:00)</option>
+          <option data-offset="-480">Pacific (UTC-08:00)</option>
+          <option data-offset="-540">Alaska (UTC-09:00)</option>
+          <option data-offset="-600">Hawaii (UTC-10:00)</option>
         </select>
       </div>
     </div>
 
-    <!-- Scheduled Block (duration) -->
+    <!-- Scheduled Block (duration fields) -->
     <div class="row">
-      <div class="label">Scheduled Block</div>
+      <div class="label">Scheduled Block (duration)</div>
       <div class="control inline-inputs">
-        <input id="blockHours" type="number" min="0" max="23" placeholder="Hours" />
-        <input id="blockMins" type="number" min="0" max="59" placeholder="Minutes" />
-        <div class="small">duration</div>
+        <input id="blockHours" type="number" min="0" max="99" placeholder="Hours" />
+        <input id="blockMins"  type="number" min="0" max="59" placeholder="Minutes" />
+        <div style="font-size:13px;color:var(--muted)">hours / minutes</div>
       </div>
     </div>
 
-    <!-- Time Difference (calculated) -->
+    <!-- Time Difference -->
     <div class="row">
       <div class="label">Time Difference</div>
       <div class="control">
@@ -104,25 +85,21 @@
 
     <!-- Scheduled Departure -->
     <div class="row">
-      <div class="label">Scheduled Departure</div>
+      <div class="label">Scheduled Departure (24h)</div>
       <div class="control">
         <input id="scheduledDeparture" type="time" />
-        <select id="departTz" class="tz-select" title="Timezone (UTC offset)">
-          <option value="+0" data-offset="0">UTC (UTC+00:00)</option>
-          <option value="-5" data-offset="-300">America/New_York (UTC-05:00)</option>
-          <option value="-4" data-offset="-240">America/Toronto (UTC-04:00)</option>
-          <option value="-8" data-offset="-480">America/Los_Angeles (UTC-08:00)</option>
-          <option value="+1" data-offset="60">Europe/Berlin (UTC+01:00)</option>
-          <option value="+3" data-offset="180">Europe/Moscow (UTC+03:00)</option>
-          <option value="+5.5" data-offset="330">Asia/Kolkata (UTC+05:30)</option>
-          <option value="+4" data-offset="240">Asia/Dubai (UTC+04:00)</option>
-          <option value="+8" data-offset="480">Asia/Shanghai (UTC+08:00)</option>
-          <option value="+10" data-offset="600">Australia/Sydney (UTC+10:00)</option>
+        <select id="departTz" class="tz-select" title="Departure timezone">
+          <option data-offset="-300">Eastern (UTC-05:00)</option>
+          <option data-offset="-360">Central (UTC-06:00)</option>
+          <option data-offset="-420">Mountain (UTC-07:00)</option>
+          <option data-offset="-480">Pacific (UTC-08:00)</option>
+          <option data-offset="-540">Alaska (UTC-09:00)</option>
+          <option data-offset="-600">Hawaii (UTC-10:00)</option>
         </select>
       </div>
     </div>
 
-    <!-- Door Closed (calculated & shown in scheduled departure timezone) -->
+    <!-- Door Closed -->
     <div class="row">
       <div class="label">Door Closed</div>
       <div class="control">
@@ -130,150 +107,143 @@
       </div>
     </div>
 
-    <div class="muted-note">All calculations are performed in UTC. Final Door Closed displayed in Scheduled Departure timezone.</div>
+    <div class="note">All math is performed in UTC using the selected USA timezone offsets (standard offsets, no DST). Final Door Closed is shown in Scheduled Departure timezone.</div>
     <footer>Made for GitHub deployment</footer>
   </div>
 </div>
 
 <script>
-/* --- Helpers --- */
-/** parse "HH:MM" -> minutes since midnight (0..1439) or null if empty */
-function hhmmToMinutes(timeStr){
-  if(!timeStr) return null;
-  const [hh,mm] = timeStr.split(':').map(Number);
-  if(Number.isNaN(hh) || Number.isNaN(mm)) return null;
-  return hh*60 + mm;
+/* ---------- Utils ---------- */
+function parseTimeToMinutes(hhmm) {
+  if (!hhmm) return null;
+  const parts = hhmm.split(':');
+  if (parts.length < 2) return null;
+  const hh = Number(parts[0]), mm = Number(parts[1]);
+  if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
+  return hh * 60 + mm;
 }
-/** minutes -> "Hh Mm" string (friendly) */
-function formatDuration(mins){
-  if(mins == null || isNaN(mins)) return '—';
-  const sign = mins < 0 ? '-' : '';
-  const abs = Math.abs(Math.round(mins));
-  const h = Math.floor(abs/60);
-  const m = abs % 60;
-  if(h === 0 && m === 0) return '0m';
-  const parts = [];
-  if(h) parts.push(h + 'h');
-  if(m) parts.push(m + 'm');
-  return sign + parts.join(' ');
-}
-/** show as HH:MM (24h) from minutes modulo 1440 */
-function minutesToHHMM(mins){
-  if(mins == null || isNaN(mins)) return '—';
+function minutesToHHMM(mins) {
+  if (mins == null || isNaN(mins)) return '—';
   let m = Math.round(mins) % (24*60);
-  if(m < 0) m += 24*60;
+  if (m < 0) m += 24*60;
   const hh = Math.floor(m/60);
   const mm = m % 60;
   return String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
 }
-
-/** read selected timezone offset (minutes) from select element */
-function tzOffsetMinutes(selectEl){
+function formatDuration(mins) {
+  if (mins == null || isNaN(mins)) return '—';
+  const sign = mins < 0 ? '-' : '';
+  const a = Math.abs(Math.round(mins));
+  const h = Math.floor(a/60);
+  const m = a % 60;
+  const parts = [];
+  if (h) parts.push(h + 'h');
+  if (m || parts.length === 0) parts.push(m + 'm');
+  return sign + parts.join(' ');
+}
+function getSelectedOffsetMinutes(selectEl) {
   const opt = selectEl.selectedOptions[0];
-  return Number(opt.dataset.offset);
+  if (!opt) return 0;
+  const v = Number(opt.dataset.offset);
+  return Number.isFinite(v) ? v : 0;
+}
+function normalizeToDay(mins) { // 0..1439
+  if (mins == null || isNaN(mins)) return null;
+  let m = Math.floor(mins) % (24*60);
+  if (m < 0) m += 24*60;
+  return m;
 }
 
-/* --- Elements --- */
+/* ---------- Elements ---------- */
 const reportTime = document.getElementById('reportTime');
-const reportTz = document.getElementById('reportTz');
+const reportTz   = document.getElementById('reportTz');
 const scheduledDuty = document.getElementById('scheduledDuty');
 const dutyTz = document.getElementById('dutyTz');
-const scheduledBlockH = document.getElementById('blockHours');
-const scheduledBlockM = document.getElementById('blockMins');
+const blockH = document.getElementById('blockHours');
+const blockM = document.getElementById('blockMins');
 const timeDifference = document.getElementById('timeDifference');
 const scheduledDeparture = document.getElementById('scheduledDeparture');
 const departTz = document.getElementById('departTz');
 const doorClosed = document.getElementById('doorClosed');
 
-/* --- Core logic --- */
+/* ---------- Core calculation ---------- */
 /*
- Excel formula:
- =IF(AND(B2>=TIME(5,0,0),B2<=TIME(18,59,0)), TIME(15,0,0)-B3, TIME(13,0,0)-B3 )
- - We evaluate this using UTC times:
-   - convert reportTime -> reportUTCMinutes
-   - convert scheduledDuty -> dutyUTCMinutes
-   - compute anchor = 15:00 UTC or 13:00 UTC
-   - tdUTCminutes = anchor - dutyUTCminutes
- - DoorClosedUTC = scheduledDepartureUTC + tdUTCminutes
- - final displayed Door Closed is converted into scheduledDeparture timezone
+Excel logic:
+IF( AND(Report >= 05:00, Report <= 18:59), 15:00 - ScheduledDuty, 13:00 - ScheduledDuty )
+
+We:
+- Convert input local times to UTC minutes:
+    UTC_min = local_min - offset_minutes
+  where offset_minutes is the number of minutes local is ahead of UTC (e.g., Eastern -300).
+- For comparison we normalize reportUTC to 0..1439.
+- anchor is fixed UTC minute 15:00 or 13:00 (on the same "duty day" used by normalized duty).
+- Compute td = anchor - dutyNorm. If negative, add 24*60 to behave like Excel time subtraction returning a positive duration.
+- Door Closed UTC = scheduledDepartureUTC + td
+- Convert Door Closed into scheduledDeparture local by adding depart offset back.
 */
+function updateCalculations() {
+  // parse local times
+  const reportLocal = parseTimeToMinutes(reportTime.value);       // 0..1439 or null
+  const dutyLocal   = parseTimeToMinutes(scheduledDuty.value);
+  const departLocal = parseTimeToMinutes(scheduledDeparture.value);
 
-function updateCalculations(){
-  // convert inputs to UTC minutes
-  const reportLocalMin = hhmmToMinutes(reportTime.value);
-  const dutyLocalMin   = hhmmToMinutes(scheduledDuty.value);
-  const departLocalMin = hhmmToMinutes(scheduledDeparture.value);
+  // offsets (minutes): these are the number to ADD to UTC to get LOCAL, so local = UTC + offset.
+  // We stored offsets as negative numbers for US zones (e.g., -300 for UTC-05:00).
+  const reportOffset = getSelectedOffsetMinutes(reportTz);
+  const dutyOffset   = getSelectedOffsetMinutes(dutyTz);
+  const departOffset = getSelectedOffsetMinutes(departTz);
 
-  const reportOffset = tzOffsetMinutes(reportTz); // minutes to add to local -> UTC = local - offset
-  const dutyOffset   = tzOffsetMinutes(dutyTz);
-  const departOffset = tzOffsetMinutes(departTz);
+  // convert local -> UTC: UTC = local - offset
+  const reportUTC = (reportLocal != null) ? (reportLocal - reportOffset) : null;
+  const dutyUTC   = (dutyLocal   != null) ? (dutyLocal   - dutyOffset)   : null;
+  const departUTC = (departLocal != null) ? (departLocal - departOffset) : null;
 
-  // Convert local minutes to UTC minutes:
-  // UTC_min = local_min - offset_minutes
-  const reportUTC = (reportLocalMin != null) ? (reportLocalMin - reportOffset) : null;
-  const dutyUTC   = (dutyLocalMin   != null) ? (dutyLocalMin   - dutyOffset)   : null;
-  const departUTC = (departLocalMin != null) ? (departLocalMin - departOffset) : null;
+  // Normalize for comparisons (0..1439)
+  const reportNorm = normalizeToDay(reportUTC);
+  const dutyNorm   = normalizeToDay(dutyUTC);
 
-  // Normalize into day range for comparisons but we allow values outside 0..1439 for arithmetic
-  function normalizeDayMin(mins){ // bring into 0..1439
-    if(mins == null || isNaN(mins)) return null;
-    let v = Math.floor(mins) % (24*60);
-    if(v < 0) v += 24*60;
-    return v;
+  // compute time difference (td) in minutes
+  let td = null;
+  if (reportNorm != null && dutyNorm != null) {
+    const lower = 5*60;           // 05:00
+    const upper = 18*60 + 59;     // 18:59
+    const anchor = (reportNorm >= lower && reportNorm <= upper) ? (15*60) : (13*60); // anchor in UTC minutes-of-day
+    td = anchor - dutyNorm;
+    // If negative, add 24h to produce positive duration (matches Excel TIME subtraction for same-day wrap)
+    if (td < 0) td += 24*60;
   }
 
-  // IF condition: reportUTC between 05:00 and 18:59 (inclusive)
-  // Use normalized day minute for this check (wrap midnight properly)
-  let tdUTC = null;
-  if(reportUTC != null && dutyUTC != null){
-    const repNorm = normalizeDayMin(reportUTC);
-    const lower = 5*60;            // 05:00
-    const upper = 18*60 + 59;      // 18:59
-    const anchor = (repNorm >= lower && repNorm <= upper) ? (15*60) : (13*60); // anchor in UTC minutes for same day
-    // anchor - dutyUTC (dutyUTC may be outside same day range — we want difference in minutes)
-    // To ensure we compute anchor as the anchor on the same day as the dutyUTC best guess:
-    // Convert dutyUTC to normalized day and compute anchorUTC using same day reference:
-    const dutyDayBase = Math.floor(dutyUTC / (24*60)) * (24*60); // start-of-day in minutes for dutyUTC
-    const anchorUTC = dutyDayBase + anchor;
-    tdUTC = anchorUTC - dutyUTC;
-    // If tdUTC looks artificially large (>24h) or <-24h, we can adjust by +/-24h to shortest diff
-    if(tdUTC > 12*60) tdUTC -= 24*60;
-    if(tdUTC < -12*60) tdUTC += 24*60;
-  }
+  timeDifference.textContent = formatDuration(td);
 
-  timeDifference.textContent = formatDuration(tdUTC);
-
-  // Door closed = scheduledDepartureUTC + tdUTC
-  if(departUTC != null && tdUTC != null){
-    const doorUTC = departUTC + tdUTC;
-    // Convert doorUTC to scheduledDeparture local by adding departOffset
-    const doorLocalMin = doorUTC + departOffset;
-    // Show as HH:MM in 24h format + show timezone suffix
-    doorClosed.textContent = minutesToHHMM(doorLocalMin) + ' (' + departTz.selectedOptions[0].text + ')';
+  // compute door closed if departure present
+  if (departUTC != null && td != null) {
+    const doorUTC = departUTC + td;
+    const doorLocal = doorUTC + departOffset; // back to departure local time
+    doorClosed.textContent = minutesToHHMM(doorLocal) + ' (' + departTz.selectedOptions[0].text + ')';
   } else {
     doorClosed.textContent = '—';
   }
 }
 
-/* --- events --- */
-const inputs = [reportTime, reportTz, scheduledDuty, dutyTz, scheduledBlockH, scheduledBlockM, scheduledDeparture, departTz];
-inputs.forEach(el => el.addEventListener('input', updateCalculations));
+/* ---------- events ---------- */
+const watched = [reportTime, reportTz, scheduledDuty, dutyTz, blockH, blockM, scheduledDeparture, departTz];
+watched.forEach(el => el.addEventListener('input', updateCalculations));
 
-/* Keep inputs empty on load (they already are), but ensure selects default to UTC */
-reportTz.value = "+0";
-dutyTz.value = "+0";
-departTz.value = "+0";
+// default selects to Eastern (first option) to avoid missing selection
+reportTz.selectedIndex = 0;
+dutyTz.selectedIndex = 0;
+departTz.selectedIndex = 0;
+updateCalculations();
 
-// quick example helper: (not required) you can uncomment to prefill the example
-/*
+/* ---------- Quick test helper (commented) ----------
+Uncomment to prefill your example:
 reportTime.value = "05:45";
 scheduledDuty.value = "11:30";
-scheduledBlockH.value = "7";
-scheduledBlockM.value = "45";
+blockH.value = "7";
+blockM.value = "45";
 scheduledDeparture.value = "13:58";
 updateCalculations();
 */
-
 </script>
 </body>
 </html>
