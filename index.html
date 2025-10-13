@@ -98,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 24</footer>
+    <footer>Version 25</footer>
   </div>
 </div>
 
@@ -163,17 +163,19 @@ function update(){
 
   // === Time Difference: report local ===
   const anchorLocal = (r >= 300 && r <= 1139) ? 900 : 780; // 15:00 or 13:00
-  let td = anchorLocal - d;
-  if(td<0) td += 1440;
-  diffEl.textContent = formatDuration(td);
+  let tdLocal = anchorLocal - d;
+  if(tdLocal<0) tdLocal+=1440;
+  diffEl.textContent = formatDuration(tdLocal);
 
-  // === Door Closed: correct TZ difference formula ===
   if(dep != null){
     const reportOffset = getOffset(reportTz);
     const depOffset = getOffset(depTz);
 
-    const tzDiff = depOffset - reportOffset;
-    const doorLocal = dep + td - tzDiff; // subtract TZ difference to reflect earlier/later correctly
+    // === Robust Door Closed calculation ===
+    const tdUTC = tdLocal - reportOffset;        // TD in UTC
+    const depUTC = dep - depOffset;             // Departure in UTC
+    const doorUTC = depUTC + tdUTC;             // Door closed in UTC
+    const doorLocal = doorUTC + depOffset;      // Convert to departure local
     doorEl.textContent = minutesToHHMM(doorLocal);
   } else {
     doorEl.textContent='—';
