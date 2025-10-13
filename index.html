@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domestic Duty Calculator</title>
+<style>
+  body {
+    font-family: "Inter", Arial, sans-serif;
+    background: #f7f8fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .container {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    width: 360px;
+  }
+
+  h2 {
+    background: #fcb900;
+    color: #222;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    font-weight: 600;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-top: 15px;
+    color: #333;
+  }
+
+  input[type="time"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+  }
+
+  .output {
+    margin-top: 6px;
+    background: #eef4ff;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 16px;
+    border: 1px solid #c5d8ff;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 13px;
+    color: #777;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Domestic ONLY</h2>
+
+  <label for="reportTime">Report Time</label>
+  <input type="time" id="reportTime" />
+
+  <label for="scheduledDuty">Scheduled Duty</label>
+  <input type="time" id="scheduledDuty" />
+
+  <label for="scheduledBlock">Scheduled Block</label>
+  <input type="time" id="scheduledBlock" />
+
+  <label for="timeDifference">Time Difference</label>
+  <div id="timeDifference" class="output">—</div>
+
+  <label for="scheduledDeparture">Scheduled Departure</label>
+  <input type="time" id="scheduledDeparture" />
+
+  <label for="doorClosed">Door Closed</label>
+  <div id="doorClosed" class="output">—</div>
+
+  <footer>Made for GitHub deployment</footer>
+</div>
+
+<script>
+  const reportTime = document.getElementById("reportTime");
+  const scheduledDuty = document.getElementById("scheduledDuty");
+  const scheduledBlock = document.getElementById("scheduledBlock");
+  const scheduledDeparture = document.getElementById("scheduledDeparture");
+  const timeDifference = document.getElementById("timeDifference");
+  const doorClosed = document.getElementById("doorClosed");
+
+  // Helper: convert HH:MM to minutes
+  const toMinutes = (timeStr) => {
+    if (!timeStr) return null;
+    const [h, m] = timeStr.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  // Helper: convert minutes back to HH:MM
+  const toHHMM = (mins) => {
+    if (mins == null || isNaN(mins)) return "—";
+    const h = Math.floor(mins / 60) % 24;
+    const m = Math.round(mins % 60);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  };
+
+  function updateCalculations() {
+    const report = toMinutes(reportTime.value);
+    const duty = toMinutes(scheduledDuty.value);
+    const departure = toMinutes(scheduledDeparture.value);
+
+    // Time Difference formula:
+    // if Report Time between 05:00 and 18:59 → 15:00 - Scheduled Duty
+    // else → 13:00 - Scheduled Duty
+    let td;
+    if (report != null && duty != null) {
+      if (report >= 5 * 60 && report <= 18 * 60 + 59) {
+        td = (15 * 60) - duty;
+      } else {
+        td = (13 * 60) - duty;
+      }
+    }
+
+    timeDifference.textContent = toHHMM(td);
+
+    // Door Closed = Scheduled Departure + Time Difference
+    if (departure != null && td != null) {
+      const dc = departure + td;
+      doorClosed.textContent = toHHMM(dc);
+    } else {
+      doorClosed.textContent = "—";
+    }
+  }
+
+  [reportTime, scheduledDuty, scheduledDeparture].forEach(input =>
+    input.addEventListener("input", updateCalculations)
+  );
+</script>
+</body>
+</html>
