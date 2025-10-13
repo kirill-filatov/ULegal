@@ -106,33 +106,50 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 5</footer>
+    <footer>Version 6</footer>
   </div>
 </div>
 
 <script>
-// Convert HH/MM inputs to total minutes
-function parseHMInputs(hourEl, minEl){
-  const h = parseInt(hourEl.value,10);
-  const m = parseInt(minEl.value,10);
-  if(isNaN(h)&&isNaN(m)) return null;
-  return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m);
+// Parse HH/MM inputs to minutes
+function parseHMInputs(hourEl, minEl){ 
+  const h=parseInt(hourEl.value,10); 
+  const m=parseInt(minEl.value,10); 
+  if(isNaN(h)&&isNaN(m)) return null; 
+  return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m); 
 }
+
+// Clamp value to 0–max and max 2 digits
+function clampInput(el, max){
+  el.addEventListener('input',()=>{
+    if(el.value.length>2) el.value = el.value.slice(0,2);
+    let v = parseInt(el.value,10);
+    if(!isNaN(v)){
+      if(v>max) el.value = max;
+      if(v<0) el.value = 0;
+    }
+  });
+}
+
+// Apply to all numeric fields
+['reportHour','reportMin','dutyHours','dutyMins','blockHours','blockMins','depHour','depMin'].forEach(id=>{
+  clampInput(document.getElementById(id), id.includes('Hour')?23:59);
+});
 
 // Minutes → HH:MM string
 function minutesToHHMM(mins){
   if(mins==null) return '—';
   mins=((mins%1440)+1440)%1440;
-  const h = String(Math.floor(mins/60)).padStart(2,'0');
-  const m = String(mins%60).padStart(2,'0');
+  const h=String(Math.floor(mins/60)).padStart(2,'0');
+  const m=String(mins%60).padStart(2,'0');
   return `${h}:${m}`;
 }
 
 // Duration formatting
 function formatDuration(mins){
   if(mins==null) return '—';
-  const h = Math.floor(mins/60);
-  const m = mins%60;
+  const h=Math.floor(mins/60);
+  const m=mins%60;
   return `${h}h ${m}m`;
 }
 
@@ -152,26 +169,29 @@ const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
 
 function update(){
-  const r=parseHMInputs(reportHour, reportMin);
+  const r=parseHMInputs(reportHour,reportMin);
   const d=parseHMInputs(dutyHours,dutyMins);
   const dep=parseHMInputs(depHour,depMin);
-  if(r==null||d==null){diffEl.textContent='—';doorEl.textContent='—';return;}
+  if(r==null||d==null){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
-  // Formula: if Report between 05:00–18:59 → (15:00 − Duty) else (13:00 − Duty)
-  const anchor=(r>=300 && r<=1139)?900:780; // 15:00 / 13:00
-  let td = anchor-d;
+  // Convert all to UTC
+  const reportUTC = r - getOffset(reportTz);
+  const dutyUTC = d; // Scheduled duty is duration, not absolute time
+  const anchor = (r>=300 && r<=1139)?900:780; // 15:00/13:00
+  let td = anchor - d;
   if(td<0) td+=1440;
   diffEl.textContent = formatDuration(td);
 
   if(dep!=null){
-    const depUTC = dep-getOffset(depTz);
+    const depUTC = dep - getOffset(depTz);
     const doorUTC = depUTC + td;
     const localDoor = doorUTC + getOffset(depTz);
     doorEl.textContent = minutesToHHMM(localDoor);
-  } else { doorEl.textContent='—'; }
+  } else {doorEl.textContent='—';}
 }
 
-[reportHour, reportMin, reportTz, dutyHours, dutyMins, dutyTz, depHour, depMin, depTz]
+// Add event listeners
+[reportHour,reportMin,reportTz,dutyHours,dutyMins,dutyTz,depHour,depMin,depTz]
   .forEach(el=>el.addEventListener('input',update));
 </script>
 </body>
