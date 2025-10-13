@@ -33,12 +33,6 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
   box-shadow:0 18px 40px rgba(4,64,120,0.12);
   box-sizing:border-box;
   backdrop-filter: blur(6px);
-  transition:none; /* no animation for instant error change */
-}
-.card.error {
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  box-shadow: none;
 }
 /* inner layout */
 .header{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:16px;}
@@ -46,7 +40,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 .subtitle{font-size:0.92rem;background:rgba(255,196,37,0.12);color:var(--accent);padding:6px 10px;border-radius:14px;font-weight:700;}
 .form-row{display:flex;align-items:center;gap:12px;margin:12px 0;justify-content:space-between;}
 .label{width:46%;font-weight:700;color:var(--navy);text-align:left;}
-.label.small{font-weight:700;font-size:0.95rem;}
+.label .light-label{font-weight:400;font-size:0.85rem;color:#888;margin-left:6px;}
 .controls{width:54%;display:flex;gap:8px;justify-content:flex-end;align-items:center;}
 .inline-input{display:flex;gap:8px;width:100%;align-items:center;}
 .input{flex:1;padding:10px 8px;border-radius:10px;border:1px solid var(--panel-border);background:var(--input-bg);text-align:center;font-size:15px;outline:none;}
@@ -82,10 +76,8 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
       <div class="subtitle">Domestic Only</div>
     </div>
 
-    <div class="form-row" title="Report Time (actual)">
-      <div class="label small">Report Time
-        <span style="display:inline-block;margin-left:8px;color:var(--muted);font-weight:600;font-size:12px;">(actual)</span>
-      </div>
+    <div class="form-row">
+      <div class="label">Report Time<span class="light-label">actual</span></div>
       <div class="controls inline-input">
         <input id="reportHour" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Report Hours" />
         <input id="reportMin"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Report Minutes" />
@@ -93,7 +85,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
     </div>
 
     <div class="form-row">
-      <div class="label small">Scheduled Duty Hours</div>
+      <div class="label">Scheduled Duty Hours<span class="light-label">scheduled</span></div>
       <div class="controls inline-input">
         <input id="dutyHours" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Duty Hours" />
         <input id="dutyMins"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Duty Minutes" />
@@ -101,7 +93,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
     </div>
 
     <div class="form-row">
-      <div class="label small">Scheduled Departure</div>
+      <div class="label">Scheduled Departure<span class="light-label">scheduled</span></div>
       <div class="controls inline-input">
         <input id="depHour" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Departure Hours" />
         <input id="depMin"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Departure Minutes" />
@@ -109,7 +101,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
     </div>
 
     <div class="form-row" style="margin-top:18px;">
-      <div class="label small">Door Closed</div>
+      <div class="label">Door Closed</div>
       <div class="controls">
         <div id="doorClosed" class="output" aria-live="polite">—</div>
       </div>
@@ -117,7 +109,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 
     <a id="explainLink" class="meta-link" role="button">How we calculated this?</a>
 
-    <div class="version">Version 60</div>
+    <div class="version">Version 61</div>
     <div class="footer-credit">© 2025 @kirillfilatov</div>
   </div>
 </div>
@@ -155,14 +147,12 @@ function minutesToHHMM(mins){
   const h = Math.floor(mins/60), m = mins%60;
   return pad2(h) + ':' + pad2(m);
 }
-/* compute maxActual for timeDiff calculation (unchanged) */
 function computeMaxActual(reportMinutes){
   if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60; // 05:00-18:59 -> 15:00
   return 13*60; // otherwise -> 13:00
 }
 
 /* ---------- Elements ---------- */
-const card = document.getElementById('calcCard');
 const reportHourEl = document.getElementById('reportHour');
 const reportMinEl  = document.getElementById('reportMin');
 const dutyHoursEl  = document.getElementById('dutyHours');
@@ -175,161 +165,102 @@ const modalBackdrop= document.getElementById('modalBackdrop');
 const modalContent = document.getElementById('modalContent');
 const closeModalBtn= document.getElementById('closeModal');
 
-/* ---------- Input wiring: numbers only, pad to 2 digits, block non-digit paste ---------- */
+/* ---------- Input wiring ---------- */
 function wireInput(el, max){
   el.addEventListener('input', ()=>{
-    // strip non-digits
     el.value = onlyDigits(el.value);
-    if(el.value === '') { doorEl.textContent = '—'; return; }
-    // clamp
+    if(el.value === '') { doorEl.textContent = '—'; doorEl.classList.remove('error'); return; }
     let n = parseInt(el.value,10);
     if(isNaN(n)) return;
     if(n < 0) n = 0;
     if(n > max) n = max;
     el.value = pad2(n);
-    update(); // live update
+    update();
   });
   el.addEventListener('blur', ()=>{
     if(el.value === '') return;
     el.value = pad2(parseInt(onlyDigits(el.value) || '0',10));
   });
-  el.addEventListener('paste', (ev) => {
-    const text = (ev.clipboardData || window.clipboardData).getData('text');
-    if(/\D/.test(text)) ev.preventDefault();
-  });
-  // prevent non-digit key entry
-  el.addEventListener('keydown', (ev)=>{
-    // allow control keys: backspace, tab, arrows, delete, home, end
-    if(ev.key.length === 1 && /\D/.test(ev.key)) ev.preventDefault();
-  });
+  el.addEventListener('paste', (ev) => { const text = (ev.clipboardData || window.clipboardData).getData('text'); if(/\D/.test(text)) ev.preventDefault(); });
+  el.addEventListener('keydown', (ev)=>{ if(ev.key.length===1 && /\D/.test(ev.key)) ev.preventDefault(); });
 }
 
-[reportHourEl, reportMinEl, dutyHoursEl, dutyMinsEl, depHourEl, depMinEl].forEach((el, idx)=>{
-  const max = (el.id.includes('Hour') ? 23 : 59);
-  wireInput(el, max);
-});
+[reportHourEl, reportMinEl, dutyHoursEl, dutyMinsEl, depHourEl, depMinEl].forEach((el, idx)=>{ wireInput(el, el.id.includes('Hour')?23:59); });
 
 /* ---------- Main update & validations ---------- */
 function update(){
-  // reset styling
-  card.classList.remove('error');
   doorEl.classList.remove('error');
 
-  // parse
   const r = minutesFromInputs(reportHourEl, reportMinEl);
   const duty = minutesFromInputs(dutyHoursEl, dutyMinsEl);
   const dep = minutesFromInputs(depHourEl, depMinEl);
 
-  // if missing show placeholder
-  if(isNaN(r) || isNaN(duty) || isNaN(dep)){
-    doorEl.textContent = '—';
-    return;
-  }
+  if(isNaN(r) || isNaN(duty) || isNaN(dep)){ doorEl.textContent='—'; return; }
 
-  // contract validation: allowed scheduled duty limits
-  // If report between 05:00-18:59 inclusive => max scheduled duty allowed = 13:00 (780)
-  // Else (19:00-04:59) => max scheduled duty allowed = 11:30 (690)
   const reportIsDay = (r >= 300 && r <= 1139);
-  const allowedScheduledMax = reportIsDay ? 13*60 : (11*60 + 30);
+  const allowedScheduledMax = reportIsDay ? 13*60 : 11*60 + 30;
   if(duty > allowedScheduledMax){
-    // scheduled duty violates contract
-    card.classList.add('error');
     doorEl.classList.add('error');
-    doorEl.textContent = 'Error. Scheduled duty violates the contract.';
+    doorEl.textContent='Error. Scheduled duty violates the contract.';
     return;
   }
 
-  // compute time difference using max actual - scheduled duty
-  const maxActual = computeMaxActual(r); // 15:00 or 13:00
+  const maxActual = computeMaxActual(r);
   const timeDiff = maxActual - duty;
-
-  // if timeDiff negative -> error
   if(timeDiff < 0 || !isFinite(timeDiff)){
-    card.classList.add('error');
     doorEl.classList.add('error');
-    doorEl.textContent = 'Error. Verify your times';
+    doorEl.textContent='Error. Verify your times';
     return;
   }
 
-  // final door closed = scheduled departure + timeDiff
   const doorClosedMinutes = dep + timeDiff;
   doorEl.textContent = minutesToHHMM(doorClosedMinutes);
 }
 
-/* ---------- Modal (explanation) ---------- */
+/* ---------- Modal ---------- */
 function openModal(){
-  // build explanation using Report Time (actual)
-  const rH = toInt(reportHourEl.value);
-  const rM = toInt(reportMinEl.value);
-  const dH = toInt(dutyHoursEl.value);
-  const dM = toInt(dutyMinsEl.value);
-  const depH = toInt(depHourEl.value);
-  const depM = toInt(depMinEl.value);
+  const rH = parseInt(onlyDigits(reportHourEl.value)||'0',10);
+  const rM = parseInt(onlyDigits(reportMinEl.value)||'0',10);
+  const dH = parseInt(onlyDigits(dutyHoursEl.value)||'0',10);
+  const dM = parseInt(onlyDigits(dutyMinsEl.value)||'0',10);
+  const depH = parseInt(onlyDigits(depHourEl.value)||'0',10);
+  const depM = parseInt(onlyDigits(depMinEl.value)||'0',10);
 
-  const reportText = (isNaN(rH)&&isNaN(rM)) ? '—' : pad2(isNaN(rH)?0:rH) + ':' + pad2(isNaN(rM)?0:rM);
-  const dutyText = (isNaN(dH)&&isNaN(dM)) ? '—' : pad2(isNaN(dH)?0:dH) + ':' + pad2(isNaN(dM)?0:dM);
-  const depText = (isNaN(depH)&&isNaN(depM)) ? '—' : pad2(isNaN(depH)?0:depH) + ':' + pad2(isNaN(depM)?0:depM);
+  const reportText = pad2(rH)+':'+pad2(rM);
+  const dutyText = pad2(dH)+':'+pad2(dM);
+  const depText = pad2(depH)+':'+pad2(depM);
 
-  let html = `<p><strong>Inputs</strong></p>`;
-  html += `<ul><li>Report Time (actual): ${reportText}</li>`;
-  html += `<li>Scheduled Duty: ${dutyText}</li>`;
-  html += `<li>Scheduled Departure: ${depText}</li></ul>`;
+  const reportMinutes = rH*60 + rM;
+  const maxAct = computeMaxActual(reportMinutes);
+  const scheduledDutyMins = dH*60+dM;
+  const timeDiff = maxAct - scheduledDutyMins;
+  const depMinutes = depH*60 + depM;
+  const doorMin = depMinutes + timeDiff;
 
-  html += `<p><strong>Step-by-step calculation</strong></p>`;
-  html += `<ol>`;
-  html += `<li><strong>Determine Max Actual Duty</strong> — based on Report Time (actual):<br>
-           If report between 05:00 and 18:59 inclusive → Max Actual = 15:00 (900 minutes).<br>
-           Otherwise (19:00–04:59) → Max Actual = 13:00 (780 minutes).</li>`;
-
-  // compute numeric values where possible
-  const reportMinutes = (!isNaN(rH) ? rH*60 + (isNaN(rM)?0:rM) : NaN);
-  const maxAct = isNaN(reportMinutes) ? '—' : computeMaxActual(reportMinutes);
-  html += `<li>Max Actual Duty = ${ isNaN(reportMinutes) ? '—' : Math.floor(maxAct/60) + 'h ' + pad2(maxAct%60) + 'm' }.</li>`;
-
-  const scheduledDutyMins = (isNaN(dH) ? 0 : dH*60) + (isNaN(dM) ? 0 : dM);
-  html += `<li>Time Difference = Max Actual − Scheduled Duty = `;
-  html += isNaN(reportMinutes) ? '—' : `${Math.floor(maxAct/60)}h ${pad2(maxAct%60)}m − ${dutyText}` + ` = ${ (maxAct - scheduledDutyMins >=0) ? (Math.floor((maxAct-scheduledDutyMins)/60) + 'h ' + pad2((maxAct-scheduledDutyMins)%60)+'m') : 'Invalid (negative)'}.</li>`;
-
-  if(!isNaN(reportMinutes)){
-    const timeDiff = maxAct - scheduledDutyMins;
-    if(timeDiff >= 0){
-      const depMinutes = (isNaN(depH)?0:depH*60) + (isNaN(depM)?0:depM);
-      const doorMin = depMinutes + timeDiff;
-      html += `<li>Door Closed = Scheduled Departure + Time Difference = ${depText} + ${Math.floor(timeDiff/60)}h ${pad2(timeDiff%60)}m = <strong>${minutesToHHMM(doorMin)}</strong> (local time).</li>`;
-    } else {
-      html += `<li>Cannot compute Door Closed because Time Difference is negative (scheduled duty exceeds max actual duty).</li>`;
-    }
-  } else {
-    html += `<li>Cannot compute further — invalid or missing Report Time (actual).</li>`;
-  }
-  html += `</ol>`;
-
-  html += `<p style="font-size:13px;color:#444;margin-top:6px;">Note: Inputs should be taken from the actual Report and Scheduled snapshot values. This follows the duty maximum guidance commonly used by AFA resources.</p>`;
-
-  modalContent.innerHTML = html;
-  modalBackdrop.style.display = 'flex';
+  let html=`<p><strong>Inputs</strong></p>
+<ul>
+<li>Report Time (actual): ${reportText}</li>
+<li>Scheduled Duty: ${dutyText}</li>
+<li>Scheduled Departure: ${depText}</li>
+</ul>
+<p><strong>Step-by-step calculation</strong></p>
+<ol>
+<li>Determine Max Actual Duty based on Report Time (actual): ${reportMinutes>=300&&reportMinutes<=1139?'15:00':'13:00'}</li>
+<li>Time Difference = Max Actual − Scheduled Duty = ${Math.floor(timeDiff/60)}h ${pad2(timeDiff%60)}m</li>
+<li>Door Closed = Scheduled Departure + Time Difference = ${minutesToHHMM(doorMin)}</li>
+</ol>
+<p style="font-size:13px;color:#444;">Note: Inputs should be taken from the actual Report and Scheduled snapshot values.</p>`;
+  modalContent.innerHTML=html;
+  modalBackdrop.style.display='flex';
   modalBackdrop.setAttribute('aria-hidden','false');
 }
+function closeModal(){ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); }
 
-function closeModal(){
-  modalBackdrop.style.display = 'none';
-  modalBackdrop.setAttribute('aria-hidden','true');
-}
-
-/* small helper */
-function toInt(v){ const n = onlyDigits(v); return n===''?NaN:parseInt(n,10); }
-
-/* event wiring */
 explainLink.addEventListener('click', openModal);
 closeModalBtn.addEventListener('click', closeModal);
-modalBackdrop.addEventListener('click', function(e){ if(e.target === modalBackdrop) closeModal(); });
+modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
 
-[reportHourEl,reportMinEl,dutyHoursEl,dutyMinsEl,depHourEl,depMinEl].forEach(el=>{
-  el.addEventListener('keydown', (ev)=>{ if(ev.key === 'Enter'){ ev.preventDefault(); el.blur(); update(); }});
-});
-
-update(); // initial
-
+update();
 </script>
 </body>
 </html>
