@@ -58,14 +58,6 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="row">
-      <div class="label">Scheduled Block</div>
-      <div class="control inline-inputs">
-        <input id="blockHours" type="number" min="0" max="23" placeholder="Hours" />
-        <input id="blockMins" type="number" min="0" max="59" placeholder="Minutes" />
-      </div>
-    </div>
-
-    <div class="row">
       <div class="label">Scheduled Departure</div>
       <div class="control inline-inputs">
         <input id="depHour" type="number" min="0" max="23" placeholder="HH" />
@@ -92,7 +84,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 50</footer>
+    <footer>Version 51</footer>
   </div>
 </div>
 
@@ -112,7 +104,7 @@ function clampInput(el,max){
     }
   });
 }
-['reportHour','reportMin','dutyHours','dutyMins','blockHours','blockMins','depHour','depMin'].forEach(id=>{
+['reportHour','reportMin','dutyHours','dutyMins','depHour','depMin'].forEach(id=>{
   clampInput(document.getElementById(id), id.includes('Hour')?23:59);
 });
 
@@ -130,10 +122,6 @@ const reportMin=document.getElementById('reportMin');
 const reportTz=document.getElementById('reportTz');
 const dutyHours=document.getElementById('dutyHours');
 const dutyMins=document.getElementById('dutyMins');
-const blockHours=document.getElementById('blockHours');
-const blockMins=document.getElementById('blockMins');
-const depHour=document.getElementById('depHour');
-const depMin=document.getElementById('depMin');
 const depTz=document.getElementById('departTz');
 const diffEl=document.getElementById('timeDifference');
 const doorEl=document.getElementById('doorClosed');
@@ -141,8 +129,8 @@ const doorEl=document.getElementById('doorClosed');
 function update(){
   const r=parseHM(reportHour,reportMin);
   const d=parseHM(dutyHours,dutyMins);
-  const dep=parseHM(depHour,depMin);
-  if(isNaN(r)||isNaN(d)||isNaN(dep)){diffEl.textContent='—'; doorEl.textContent='—'; return;}
+
+  if(isNaN(r)||isNaN(d)){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
   const reportOffset=getOffset(reportTz);
   const depOffset=getOffset(depTz);
@@ -150,13 +138,13 @@ function update(){
   // Time Difference = Scheduled Duty only
   diffEl.textContent=formatDuration(d);
 
-  // Door Closed = Scheduled Departure + Scheduled Duty + TZ delta
-  const tzDelta = depOffset - reportOffset;
-  const doorLocal = dep + d + tzDelta;
+  // Door Closed = Report Time + Scheduled Duty + (Departure TZ - Report TZ)
+  const tzDelta = depOffset - reportOffset; // offset in minutes
+  const doorLocal = r + d + tzDelta;
   doorEl.textContent=minutesToHHMM(doorLocal);
 }
 
-[reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz].forEach(el=>el.addEventListener('input',update));
+[reportHour,reportMin,reportTz,dutyHours,dutyMins,depTz].forEach(el=>el.addEventListener('input',update));
 </script>
 </body>
 </html>
