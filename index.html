@@ -98,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 16</footer>
+    <footer>Version 17</footer>
   </div>
 </div>
 
@@ -163,24 +163,27 @@ function update(){
   const dep=parseHM(depHour,depMin);
   if(r==null||d==null){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
-  // Time Difference adjusted for report TZ
+  // Time Difference in local report minutes
   const anchorLocal = (r>=300 && r<=1139)?900:780; // 15:00 or 13:00
-  const rUTC = r - getOffset(reportTz);
-  const anchorUTC = anchorLocal - getOffset(reportTz);
-  let td = anchorUTC - rUTC - d; // subtract duty duration
+  let td = anchorLocal - d;
   if(td<0) td += 1440;
   diffEl.textContent = formatDuration(td);
 
   // Door Closed
   if(dep!=null){
     const depOffset = getOffset(depTz);
-    if(lastDepUTC===null || lastDepUTC===undefined) lastDepUTC = dep - depOffset;
+    const reportOffset = getOffset(reportTz);
+    // If lastDepUTC is null, calculate from current dep input and dep TZ
+    if(lastDepUTC===null) lastDepUTC = dep - depOffset;
+
+    // Adjust td if report TZ changed
+    const anchorShift = reportOffset - getOffset(reportTz); // will be zero in this implementation
     const doorUTC = lastDepUTC + td;
     const doorLocal = doorUTC + depOffset;
     doorEl.textContent = minutesToHHMM(doorLocal);
   } else {
     doorEl.textContent='—';
-    lastDepUTC = null;
+    lastDepUTC=null;
   }
 }
 
