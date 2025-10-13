@@ -91,104 +91,98 @@ footer{margin-top:16px;font-weight:600}
       <div class="control"><div id="doorClosed" class="output">—</div></div>
     </div>
 
-    <div class="note">All times use 24-hour (military) format. Time Difference = max actual (15:00 or 13:00) − Scheduled Block.</div>
-    <footer>Version 53</footer>
+    <div class="note">All times use 24-hour (military) format. Time Difference = max actual − scheduled duty. Door Closed = scheduled departure + time difference + TZ adjustment.</div>
+    <footer>Version 54</footer>
   </div>
 </div>
 
 <script>
-/* helpers */
 function parseHM(hourEl,minEl){
   const h = parseInt(hourEl.value,10);
   const m = parseInt(minEl.value,10);
-  if (isNaN(h) && isNaN(m)) return NaN;
+  if(isNaN(h) && isNaN(m)) return NaN;
   return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m);
 }
+
 function clampInput(el,max){
   el.addEventListener('input',()=>{
     if(el.value.length>2) el.value=el.value.slice(0,2);
     let v=parseInt(el.value,10);
     if(!isNaN(v)){
-      if(v>max) el.value = String(max);
-      if(v<0) el.value = '0';
+      if(v>max) el.value=max;
+      if(v<0) el.value=0;
     }
   });
 }
+
 ['reportHour','reportMin','dutyHours','dutyMins','blockHours','blockMins','depHour','depMin']
-.forEach(id=>{
-  clampInput(document.getElementById(id), id.includes('Hour')?23:59);
-});
+.forEach(id=>clampInput(document.getElementById(id), id.includes('Hour')?23:59));
 
 function minutesToHHMM(mins){
   mins = Math.round(mins);
-  mins = ((mins % 1440) + 1440) % 1440;
+  mins = ((mins%1440)+1440)%1440;
   const h = String(Math.floor(mins/60)).padStart(2,'0');
   const m = String(mins%60).padStart(2,'0');
   return `${h}:${m}`;
 }
+
 function formatDuration(mins){
   mins = Math.round(mins);
-  if(mins < 0) mins = 0;
-  const h = Math.floor(mins/60);
-  const m = mins % 60;
+  if(mins<0) mins=0;
+  const h=Math.floor(mins/60);
+  const m=mins%60;
   return `${h}h ${m}m`;
 }
+
 function getOffset(el){ return Number(el.selectedOptions[0].dataset.offset||0); }
 
-/* elements */
-const reportHour = document.getElementById('reportHour');
-const reportMin  = document.getElementById('reportMin');
-const reportTz   = document.getElementById('reportTz');
-const dutyHours  = document.getElementById('dutyHours');
-const dutyMins   = document.getElementById('dutyMins');
-const blockHours = document.getElementById('blockHours');
-const blockMins  = document.getElementById('blockMins');
-const depHour    = document.getElementById('depHour');
-const depMin     = document.getElementById('depMin');
-const depTz      = document.getElementById('departTz');
-const diffEl     = document.getElementById('timeDifference');
-const doorEl     = document.getElementById('doorClosed');
+const reportHour=document.getElementById('reportHour');
+const reportMin=document.getElementById('reportMin');
+const reportTz=document.getElementById('reportTz');
+const dutyHours=document.getElementById('dutyHours');
+const dutyMins=document.getElementById('dutyMins');
+const blockHours=document.getElementById('blockHours');
+const blockMins=document.getElementById('blockMins');
+const depHour=document.getElementById('depHour');
+const depMin=document.getElementById('depMin');
+const depTz=document.getElementById('departTz');
+const diffEl=document.getElementById('timeDifference');
+const doorEl=document.getElementById('doorClosed');
 
 function computeMaxActual(reportMinutes){
-  // reportMinutes is minutes since midnight in report local clock (0..1439)
-  // If report between 05:00 (300) and 18:59 (1139) inclusive => 15:00 (900)
-  // Else => 13:00 (780)
-  if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60; // 900
-  return 13*60; // 780
+  if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60; // 05:00-18:59 → 15:00
+  return 13*60; // 19:00-04:59 → 13:00
 }
 
 function update(){
   const r = parseHM(reportHour, reportMin);
   const duty = parseHM(dutyHours, dutyMins);
   const block = parseHM(blockHours, blockMins);
+  const dep = parseHM(depHour, depMin);
 
-  // If report undefined we can't determine max actual. Require report + block + duty for different outputs.
-  if(isNaN(r) || isNaN(block) || isNaN(duty)){
+  if(isNaN(r) || isNaN(duty) || isNaN(block) || isNaN(dep)){
     diffEl.textContent = '—';
     doorEl.textContent = '—';
     return;
   }
 
   const reportOffset = getOffset(reportTz);
-  const depOffset    = getOffset(depTz);
+  const depOffset = getOffset(depTz);
 
-  // 1) Time Difference = maxActual - scheduled block (clamped at 0)
+  // 1) Time Difference = Max Actual − Scheduled Duty
   const maxActual = computeMaxActual(r);
-  let timeDifferenceMins = maxActual - block;
-  if (timeDifferenceMins < 0) timeDifferenceMins = 0;
-  diffEl.textContent = formatDuration(timeDifferenceMins);
+  const timeDiff = maxActual - duty;
+  diffEl.textContent = formatDuration(timeDiff);
 
-  // 2) Door Closed = Report Time + Scheduled Duty + TZ delta (departure - report)
-  const tzDelta = depOffset - reportOffset; // minutes
-  const doorLocal = r + duty + tzDelta;
-  doorEl.textContent = minutesToHHMM(doorLocal);
+  // 2) Door Closed = Scheduled Departure + Time Difference + TZ delta
+  const tzDelta = depOffset - reportOffset;
+  const doorClosedMinutes = dep + timeDiff + tzDelta;
+  doorEl.textContent = minutesToHHMM(doorClosedMinutes);
 }
 
-/* wire up events */
 [reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz]
-.forEach(el => el.addEventListener('input', update));
+.forEach(el=>el.addEventListener('input', update));
 
-/* initial update */
 update();
 </script>
 </body>
