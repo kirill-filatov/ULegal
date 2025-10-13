@@ -50,20 +50,12 @@ footer{margin-top:16px;font-weight:600}
       </div>
     </div>
 
-    <!-- Scheduled Duty -->
+    <!-- Scheduled Duty (duration only) -->
     <div class="row">
       <div class="label">Scheduled Duty</div>
       <div class="control inline-inputs">
         <input id="dutyHours" type="number" min="0" max="23" placeholder="Hours" />
         <input id="dutyMins" type="number" min="0" max="59" placeholder="Minutes" />
-        <select id="dutyTz" class="tz-select">
-          <option data-offset="-300">Eastern (UTC-05:00)</option>
-          <option data-offset="-360">Central (UTC-06:00)</option>
-          <option data-offset="-420">Mountain (UTC-07:00)</option>
-          <option data-offset="-480">Pacific (UTC-08:00)</option>
-          <option data-offset="-540">Alaska (UTC-09:00)</option>
-          <option data-offset="-600">Hawaii (UTC-10:00)</option>
-        </select>
       </div>
     </div>
 
@@ -74,12 +66,6 @@ footer{margin-top:16px;font-weight:600}
         <input id="blockHours" type="number" min="0" max="23" placeholder="Hours" />
         <input id="blockMins" type="number" min="0" max="59" placeholder="Minutes" />
       </div>
-    </div>
-
-    <!-- Time Difference -->
-    <div class="row">
-      <div class="label">Time Difference</div>
-      <div class="control"><div id="timeDifference" class="output">—</div></div>
     </div>
 
     <!-- Scheduled Departure -->
@@ -99,6 +85,12 @@ footer{margin-top:16px;font-weight:600}
       </div>
     </div>
 
+    <!-- Time Difference -->
+    <div class="row">
+      <div class="label">Time Difference</div>
+      <div class="control"><div id="timeDifference" class="output">—</div></div>
+    </div>
+
     <!-- Door Closed -->
     <div class="row">
       <div class="label">Door Closed</div>
@@ -106,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 6</footer>
+    <footer>Version 7</footer>
   </div>
 </div>
 
@@ -161,7 +153,8 @@ const reportMin=document.getElementById('reportMin');
 const reportTz=document.getElementById('reportTz');
 const dutyHours=document.getElementById('dutyHours');
 const dutyMins=document.getElementById('dutyMins');
-const dutyTz=document.getElementById('dutyTz');
+const blockHours=document.getElementById('blockHours');
+const blockMins=document.getElementById('blockMins');
 const depHour=document.getElementById('depHour');
 const depMin=document.getElementById('depMin');
 const depTz=document.getElementById('departTz');
@@ -174,16 +167,16 @@ function update(){
   const dep=parseHMInputs(depHour,depMin);
   if(r==null||d==null){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
-  // Convert all to UTC
-  const reportUTC = r - getOffset(reportTz);
-  const dutyUTC = d; // Scheduled duty is duration, not absolute time
+  // Formula: anchor time is 15:00 / 13:00 based on report time
   const anchor = (r>=300 && r<=1139)?900:780; // 15:00/13:00
   let td = anchor - d;
   if(td<0) td+=1440;
   diffEl.textContent = formatDuration(td);
 
+  // Door Closed calculation considering time zones
   if(dep!=null){
     const depUTC = dep - getOffset(depTz);
+    const reportUTC = r - getOffset(reportTz); // not used in formula here but TZ is considered
     const doorUTC = depUTC + td;
     const localDoor = doorUTC + getOffset(depTz);
     doorEl.textContent = minutesToHHMM(localDoor);
@@ -191,7 +184,7 @@ function update(){
 }
 
 // Add event listeners
-[reportHour,reportMin,reportTz,dutyHours,dutyMins,dutyTz,depHour,depMin,depTz]
+[reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz]
   .forEach(el=>el.addEventListener('input',update));
 </script>
 </body>
