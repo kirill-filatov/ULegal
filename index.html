@@ -98,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 20</footer>
+    <footer>Version 21</footer>
   </div>
 </div>
 
@@ -167,11 +167,19 @@ function update(){
   if(td<0) td += 1440;
   diffEl.textContent = formatDuration(td);
 
-  // === Door Closed: based on departure TZ only ===
+  // === Door Closed: consider both departure and report TZ offsets ===
   if(dep != null){
     const depOffset = getOffset(depTz);
+    const reportOffset = getOffset(reportTz);
+
+    // Convert report and departure times to UTC
+    const reportUTC = r - reportOffset;
     const depUTC = dep - depOffset;
+
+    // Add Time Difference to departure UTC
     const doorUTC = depUTC + td;
+
+    // Convert back to departure local time
     const doorLocal = doorUTC + depOffset;
     doorEl.textContent = minutesToHHMM(doorLocal);
   } else {
@@ -183,7 +191,6 @@ function update(){
 [reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz].forEach(el=>{
   el.addEventListener('input',update);
 });
-
 </script>
 </body>
 </html>
