@@ -3,27 +3,31 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Domestic Duty Calculator</title>
+<title>Maximum Duty Calculator</title>
 <style>
 :root{
   --primary:#005DAA;   /* United blue */
   --accent:#FFC425;    /* United gold */
   --bg:#F0F2F5;
-  --card:#FFFFFF;
-  --input-bg:#F7F9FB;
+  --card:#FFFFFFCC;    /* White with transparency */
+  --input-bg:#F7F9FBCC;
   --text-dark:#222;
   --text-muted:#666;
-  --panel:#E6F0FA;
+  --panel:#E6F0FACC;
   --panel-border:#C4D9F5;
   --grey:#A0A0A0;
+  --info-bg:#ffffffee;
+  --info-border:#CCCCCC;
 }
 html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);}
 .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px;}
-.card{width:100%;max-width:480px;background:var(--card);padding:30px;border-radius:16px;
-      box-shadow:0 15px 35px rgba(0,0,0,0.1);text-align:center;}
-.title-app{font-size:1.8em;font-weight:700;color:var(--primary);margin-bottom:24px;}
-.row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;}
-.label{width:130px;font-weight:600;color:var(--text-dark);text-align:left;}
+.card{width:90%;max-width:500px;background:var(--card);padding:30px;border-radius:20px;
+      box-shadow:0 20px 50px rgba(0,0,0,0.1);text-align:center;}
+.title-app{font-size:2em;font-weight:700;color:var(--primary);margin-bottom:4px;}
+.subtitle{color:var(--accent);font-weight:600;margin-bottom:20px;}
+.row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;position:relative;}
+.label{width:150px;font-weight:600;color:var(--text-dark);text-align:left;}
+.bold-label{font-weight:700;}
 .control{flex:1;display:flex;gap:10px;align-items:center;justify-content:flex-end;}
 input[type="number"]{flex:1;padding:10px;border-radius:10px;border:1px solid var(--panel-border);
                       background:var(--input-bg);font-size:16px;text-align:center;}
@@ -31,17 +35,29 @@ input[type="number"]{flex:1;padding:10px;border-radius:10px;border:1px solid var
 .inline-inputs input[type="number"]{flex:1;}
 .output{background:var(--panel);border:1px solid var(--panel-border);padding:10px;
         border-radius:10px;font-weight:700;font-size:16px;}
-footer{margin-top:20px;color:var(--grey);font-weight:500;font-size:13px;}
-@media(max-width:500px){.card{padding:20px;margin:10px;}}
+footer{margin-top:15px;color:var(--grey);font-weight:500;font-size:13px;}
+.version{font-size:12px;color:var(--grey);margin-top:4px;}
+.info-icon{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--primary);
+           color:#fff;font-size:12px;line-height:16px;text-align:center;cursor:pointer;position:relative;}
+.info-tooltip{position:absolute;top:-5px;left:100%;background:var(--info-bg);border:1px solid var(--info-border);
+              padding:6px 10px;border-radius:6px;white-space:nowrap;font-size:12px;color:var(--text-dark);
+              display:none;z-index:10;}
+.info-icon:hover .info-tooltip,.info-icon:focus .info-tooltip{display:block;}
+@media(max-width:500px){.card{padding:20px;margin:10px;width:95%;}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
-    <div class="title-app">Domestic Duty Calculator</div>
+    <div class="title-app">Maximum Duty Calculator</div>
+    <div class="subtitle">Domestic Only</div>
 
     <div class="row">
-      <div class="label">Report Hours</div>
+      <div class="label bold-label">Report Hours 
+        <span class="info-icon" tabindex="0">i
+          <span class="info-tooltip">All times should be entered from originally Scheduled snapshot, not from Updated.</span>
+        </span>
+      </div>
       <div class="control inline-inputs">
         <input id="reportHour" type="number" min="0" max="23" placeholder="Hours" />
         <input id="reportMin" type="number" min="0" max="59" placeholder="Minutes" />
@@ -49,7 +65,11 @@ footer{margin-top:20px;color:var(--grey);font-weight:500;font-size:13px;}
     </div>
 
     <div class="row">
-      <div class="label">Scheduled Duty Hours</div>
+      <div class="label bold-label">Scheduled Duty Hours 
+        <span class="info-icon" tabindex="0">i
+          <span class="info-tooltip">All times should be entered from originally Scheduled snapshot, not from Updated.</span>
+        </span>
+      </div>
       <div class="control inline-inputs">
         <input id="dutyHours" type="number" min="0" max="23" placeholder="Hours" />
         <input id="dutyMins" type="number" min="0" max="59" placeholder="Minutes" />
@@ -57,24 +77,26 @@ footer{margin-top:20px;color:var(--grey);font-weight:500;font-size:13px;}
     </div>
 
     <div class="row">
-      <div class="label">Scheduled Departure</div>
+      <div class="label bold-label">Scheduled Departure 
+        <span class="info-icon" tabindex="0">i
+          <span class="info-tooltip">All times should be entered from originally Scheduled snapshot, not from Updated.</span>
+        </span>
+      </div>
       <div class="control inline-inputs">
         <input id="depHour" type="number" min="0" max="23" placeholder="Hours" />
         <input id="depMin" type="number" min="0" max="59" placeholder="Minutes" />
       </div>
     </div>
 
-    <!-- Hidden internal time difference calculation -->
-    <div style="display:none;">
-      <div id="timeDifference"></div>
-    </div>
+    <!-- Hidden internal time difference -->
+    <div style="display:none;"><div id="timeDifference"></div></div>
 
     <div class="row">
-      <div class="label">Door Closed</div>
+      <div class="label bold-label">Door Closed</div>
       <div class="control"><div id="doorClosed" class="output">—</div></div>
     </div>
 
-    <footer>Made by @kirillfilatov</footer>
+    <footer>© 2025 @kirillfilatov<div class="version">Version 57</div></footer>
   </div>
 </div>
 
@@ -94,8 +116,7 @@ function clampInput(el,max){
     if(isNaN(v)) return;
     if(v<0) v=0;
     if(v>max) v=max;
-    // auto-format to 2 digits
-    el.value = String(v).padStart(2,'0');
+    el.value = String(v).padStart(2,'0'); // auto-format to 2 digits
   });
 }
 
@@ -105,15 +126,15 @@ function clampInput(el,max){
 });
 
 function minutesToHHMM(mins){
-  mins = Math.round(mins);
-  mins = ((mins%1440)+1440)%1440;
+  mins=Math.round(mins);
+  mins=((mins%1440)+1440)%1440;
   const h=String(Math.floor(mins/60)).padStart(2,'0');
   const m=String(mins%60).padStart(2,'0');
   return `${h}:${m}`;
 }
 
 function computeMaxActual(reportMinutes){
-  if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60;
+  if(reportMinutes>=300 && reportMinutes<=1139) return 15*60;
   return 13*60;
 }
 
@@ -140,7 +161,7 @@ function update(){
   const timeDiff=maxActual-duty; // internal only
   diffEl.textContent=timeDiff;
 
-  const doorClosedMinutes=dep + timeDiff;
+  const doorClosedMinutes=dep+timeDiff;
   doorEl.textContent=minutesToHHMM(doorClosedMinutes);
 }
 
