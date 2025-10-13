@@ -6,10 +6,10 @@
 <title>Maximum Duty Calculator</title>
 <style>
 :root{
-  --primary:#005DAA; /* United blue */
-  --accent:#FFC425; /* United gold */
+  --primary:#005DAA;
+  --accent:#FFC425;
   --bg:#F0F2F5;
-  --card:#FFFFFFCC; /* transparent */
+  --card:#FFFFFFCC;
   --input-bg:#F7F9FBCC;
   --text-dark:#222;
   --text-muted:#666;
@@ -21,164 +21,325 @@
   --warning-bg:#FFC42533;
 }
 html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);overflow:hidden;}
-.wrap{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;padding:0;}
-.card{width:90%;max-width:500px;background:var(--card);padding:30px;border-radius:20px;
-      box-shadow:0 20px 50px rgba(0,0,0,0.1);text-align:center;box-sizing:border-box;}
-.title-app{font-size:2em;font-weight:700;color:var(--primary);margin-bottom:6px;}
-.subtitle{display:inline-block;background:var(--warning-bg);color:var(--accent);font-weight:700;padding:2px 10px;border-radius:12px;margin-bottom:20px;font-size:0.9em;}
-.row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;position:relative;}
-.label{width:150px;font-weight:600;color:var(--text-dark);text-align:left;}
+/* full-viewport centering and sizing */
+.wrap{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box;}
+.card{width:100%;max-width:680px;height:calc(100vh - 40px); /* leave space for bottom disclaimer */ 
+      background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85)); 
+      border-radius:20px;padding:28px;box-shadow:0 20px 50px rgba(0,0,0,0.12);box-sizing:border-box;overflow:auto;}
+/* ensure inner content centered vertically */
+.card-inner{max-width:560px;margin:0 auto;display:flex;flex-direction:column;align-items:stretch;gap:14px;}
+.title-app{font-size:2em;font-weight:700;color:var(--primary);margin:2px 0 4px;}
+.subtitle{display:inline-block;background:var(--warning-bg);color:var(--accent);font-weight:700;padding:4px 12px;border-radius:16px;font-size:0.95em;margin-bottom:6px;}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;}
+.label{width:220px;font-weight:600;color:var(--text-dark);text-align:left;}
 .bold-label{font-weight:700;}
-.control{flex:1;display:flex;gap:10px;align-items:center;justify-content:flex-end;}
-input[type="number"]{flex:1;padding:10px;border-radius:10px;border:1px solid var(--panel-border);
-                      background:var(--input-bg);font-size:16px;text-align:center;}
-.inline-inputs{display:flex;gap:6px;align-items:center;flex:1;}
-.inline-inputs input[type="number"]{flex:1;}
-.output{background:var(--panel);border:1px solid var(--panel-border);padding:10px;
-        border-radius:10px;font-weight:700;font-size:16px;min-width:110px;}
-footer{margin-top:10px;color:var(--grey);font-weight:500;font-size:13px;}
-.version{font-size:12px;color:var(--grey);margin-bottom:2px;}
-.info-icon{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--primary);
-           color:#fff;font-size:12px;line-height:16px;text-align:center;cursor:pointer;position:relative;}
-.info-tooltip{position:absolute;top:-5px;left:100%;background:var(--info-bg);border:1px solid var(--info-border);
-              padding:6px 10px;border-radius:6px;white-space:nowrap;font-size:12px;color:var(--text-dark);
-              display:none;z-index:10;}
+.control{flex:1;display:flex;gap:8px;align-items:center;justify-content:flex-end;}
+input[type="text"]{flex:1;padding:10px;border-radius:10px;border:1px solid var(--panel-border);
+                    background:var(--input-bg);font-size:16px;text-align:center;outline:none;}
+.inline-inputs{display:flex;gap:8px;align-items:center;flex:1;}
+.inline-inputs input[type="text"]{flex:1;min-width:64px;}
+.output{background:var(--panel);border:1px solid var(--panel-border);padding:10px;border-radius:10px;
+        font-weight:700;font-size:16px;min-width:140px;text-align:center;}
+.meta-links{font-size:13px;color:var(--primary);text-decoration:underline;cursor:pointer;margin-top:6px;text-align:left;}
+.version{font-size:12px;color:var(--grey);margin-top:6px;text-align:left;}
+.footer-credit{font-size:13px;color:var(--grey);margin-top:6px;text-align:left;}
+/* info icon tooltip */
+.info-icon{display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--primary);
+           color:#fff;font-size:12px;line-height:18px;text-align:center;cursor:pointer;margin-left:8px;position:relative;}
+.info-tooltip{position:absolute;top:-6px;left:100%;background:var(--info-bg);border:1px solid var(--info-border);
+              padding:8px 10px;border-radius:8px;white-space:nowrap;font-size:13px;color:var(--text-dark);display:none;z-index:1200;}
 .info-icon:hover .info-tooltip,.info-icon:focus .info-tooltip{display:block;}
-.legal-disclaimer{font-size:8px;color:#f0f2f5;padding-top:2px;text-align:center;}
-@media(max-width:500px){.card{padding:20px;margin:0;width:95%;}}
+/* modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:2000;}
+.modal{width:90%;max-width:720px;background:#fff;border-radius:12px;padding:18px;box-sizing:border-box;max-height:80vh;overflow:auto;}
+.modal h3{margin:0 0 8px;}
+.modal pre{background:#f7f7f7;padding:10px;border-radius:8px;overflow:auto;}
+/* bottom legal disclaimer outside the box */
+.bottom-disclaimer{position:fixed;left:0;right:0;bottom:4px;padding:6px 12px;text-align:center;font-size:11px;
+                   color:#dfe6ea;background:transparent;pointer-events:none;}
+/* responsive adjustments */
+@media(max-width:700px){.card{height:calc(100vh - 30px);padding:18px;border-radius:12px;} .label{width:140px;} .inline-inputs input{min-width:54px;}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="card">
-    <div class="title-app">Maximum Duty Calculator</div>
-    <div class="subtitle">Domestic Only</div>
+  <div class="card" role="application" aria-labelledby="appTitle">
+    <div class="card-inner">
+      <div>
+        <div id="appTitle" class="title-app">Maximum Duty Calculator</div>
+        <div class="subtitle">Domestic Only</div>
+      </div>
 
-    <div class="row">
-      <div class="label bold-label">Report Time 
-        <span class="info-icon" tabindex="0">i
-          <span class="info-tooltip">All times should be entered from originally Scheduled snapshot, not from Updated.</span>
-        </span>
+      <div class="row" title="Report Time (scheduled snapshot)">
+        <div class="label bold-label">Report Time
+          <span class="info-icon" tabindex="0" aria-label="Info">i
+            <span class="info-tooltip">All times should be entered from originally Scheduled snapshot, not from Updated.</span>
+          </span>
+        </div>
+        <div class="control inline-inputs">
+          <input id="reportHour" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Hours" aria-label="Report Hours" />
+          <input id="reportMin"  type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Minutes" aria-label="Report Minutes" />
+        </div>
       </div>
-      <div class="control inline-inputs">
-        <input id="reportHour" type="number" min="0" max="23" placeholder="Hours" />
-        <input id="reportMin" type="number" min="0" max="59" placeholder="Minutes" />
+
+      <div class="row">
+        <div class="label bold-label">Scheduled Duty Hours
+          <span class="info-icon" tabindex="0" aria-label="Info">i
+            <span class="info-tooltip">Enter Scheduled Duty from pairing marked "scheduled", not "updated".</span>
+          </span>
+        </div>
+        <div class="control inline-inputs">
+          <input id="dutyHours" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Hours" aria-label="Duty Hours" />
+          <input id="dutyMins"  type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Minutes" aria-label="Duty Minutes" />
+        </div>
       </div>
+
+      <div class="row">
+        <div class="label bold-label">Scheduled Departure
+          <span class="info-icon" tabindex="0" aria-label="Info">i
+            <span class="info-tooltip">Enter Scheduled Departure from pairing marked "scheduled".</span>
+          </span>
+        </div>
+        <div class="control inline-inputs">
+          <input id="depHour" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Hours" aria-label="Departure Hours" />
+          <input id="depMin"  type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Minutes" aria-label="Departure Minutes" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label bold-label">Door Closed</div>
+        <div class="control">
+          <div id="doorClosed" class="output" aria-live="polite">—</div>
+        </div>
+      </div>
+
+      <div>
+        <a id="explainLink" class="meta-links" role="button">How we calculated this?</a>
+      </div>
+
+      <div class="version">Version 59</div>
+      <div class="footer-credit">@kirillfilatov</div>
     </div>
-
-    <div class="row">
-      <div class="label bold-label">Scheduled Duty Hours 
-        <span class="info-icon" tabindex="0">i
-          <span class="info-tooltip">All times should be entered from originally Scheduled snapshot, not from Updated.</span>
-        </span>
-      </div>
-      <div class="control inline-inputs">
-        <input id="dutyHours" type="number" min="0" max="23" placeholder="Hours" />
-        <input id="dutyMins" type="number" min="0" max="59" placeholder="Minutes" />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="label bold-label">Scheduled Departure 
-        <span class="info-icon" tabindex="0">i
-          <span class="info-tooltip">All times should be entered from originally Scheduled snapshot, not from Updated.</span>
-        </span>
-      </div>
-      <div class="control inline-inputs">
-        <input id="depHour" type="number" min="0" max="23" placeholder="Hours" />
-        <input id="depMin" type="number" min="0" max="59" placeholder="Minutes" />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="label bold-label">Door Closed</div>
-      <div class="control"><div id="doorClosed" class="output">—</div></div>
-    </div>
-
-    <div class="version">Version 58</div>
-    <footer>@kirillfilatov</footer>
-    <div class="legal-disclaimer">This is not an official United tool and should be used only for informational purposes. Always confirm with the Collective Bargaining Flight Attendant Contract.</div>
-
-    <!-- Hidden internal time difference -->
-    <div style="display:none;"><div id="timeDifference"></div></div>
   </div>
 </div>
 
+<!-- modal (hidden by default) -->
+<div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal" role="document">
+    <h3>Calculation: Step-by-Step</h3>
+    <div id="modalContent">
+      <!-- content filled by JS -->
+    </div>
+    <div style="text-align:right;margin-top:12px;">
+      <button id="closeModal">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- bottom legal disclaimer outside card -->
+<div class="bottom-disclaimer" id="legalDisclaimer">
+  This tool is not an official United Airlines product. It is provided for informational purposes only and does not replace contractual interpretation. Always confirm with the JCBA before taking any operational action.
+</div>
+
 <script>
-function parseHM(hourEl,minEl){
-  let h=parseInt(hourEl.value,10);
-  let m=parseInt(minEl.value,10);
+/* Utilities */
+function toNumberDigits(str, max){
+  // remove non-digits
+  str = (str||'').replace(/\D/g,'');
+  if(str==='') return NaN;
+  let n = parseInt(str,10);
+  if(isNaN(n)) return NaN;
+  if(n<0) n=0;
+  if(typeof max === 'number' && n>max) n = max;
+  // pad to two digits when returning string for putting back
+  return n;
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function parseHMFromInputs(hourEl,minEl){
+  const h = toNumberDigits(hourEl.value, 23);
+  const m = toNumberDigits(minEl.value, 59);
   if(isNaN(h) && isNaN(m)) return NaN;
-  if(isNaN(h)) h=0;
-  if(isNaN(m)) m=0;
-  return h*60 + m;
+  const hh = isNaN(h)?0:h;
+  const mm = isNaN(m)?0:m;
+  return hh*60 + mm;
 }
 
-function clampInput(el,max){
-  el.addEventListener('input',()=>{
-    el.value = el.value.replace(/\D/g,''); // remove non-digit
-    let v=parseInt(el.value,10);
-    if(isNaN(v)) return;
-    if(v<0) v=0;
-    if(v>max) v=max;
-    el.value = String(v).padStart(2,'0');
+/* Elements */
+const reportHourEl = document.getElementById('reportHour');
+const reportMinEl  = document.getElementById('reportMin');
+const dutyHoursEl  = document.getElementById('dutyHours');
+const dutyMinsEl   = document.getElementById('dutyMins');
+const depHourEl    = document.getElementById('depHour');
+const depMinEl     = document.getElementById('depMin');
+const doorEl       = document.getElementById('doorClosed');
+const diffHidden   = document.getElementById('timeDifference'); // kept internal if needed
+
+/* input handling: block non-digit, auto-pad to 2 digits, clamp */
+function wireNumericInput(el, max){
+  el.addEventListener('input', ()=>{
+    // remove non-digit chars
+    el.value = el.value.replace(/\D/g,'');
+    if(el.value === '') return;
+    let n = parseInt(el.value,10);
+    if(isNaN(n)) return;
+    if(n < 0) n = 0;
+    if(n > max) n = max;
+    el.value = pad2(n);
+    update(); // live update
+  });
+  // also on blur ensure padding
+  el.addEventListener('blur', ()=>{
+    if(el.value === '') return;
+    el.value = pad2(parseInt(el.value,10));
+  });
+  // prevent paste non-numeric
+  el.addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if(/\D/.test(text)) e.preventDefault();
   });
 }
 
-['reportHour','reportMin','dutyHours','dutyMins','depHour','depMin'].forEach(id=>{
-  const el=document.getElementById(id);
-  clampInput(el,id.includes('Hour')?23:59);
-});
+/* wire inputs */
+wireNumericInput(reportHourEl, 23);
+wireNumericInput(reportMinEl, 59);
+wireNumericInput(dutyHoursEl, 23);
+wireNumericInput(dutyMinsEl, 59);
+wireNumericInput(depHourEl, 23);
+wireNumericInput(depMinEl, 59);
 
+/* calculation functions */
 function minutesToHHMM(mins){
-  mins=Math.round(mins);
-  mins=((mins%1440)+1440)%1440;
-  const h=String(Math.floor(mins/60)).padStart(2,'0');
-  const m=String(mins%60).padStart(2,'0');
-  return `${h}:${m}`;
+  mins = Math.round(mins);
+  mins = ((mins % 1440) + 1440) % 1440;
+  const h = Math.floor(mins/60);
+  const m = mins % 60;
+  return pad2(h) + ':' + pad2(m);
 }
-
 function computeMaxActual(reportMinutes){
-  if(reportMinutes>=300 && reportMinutes<=1139) return 15*60;
-  return 13*60;
+  if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60; // 05:00-18:59
+  return 13*60; // otherwise
+}
+function formatDuration(mins){
+  if(isNaN(mins)) return '—';
+  mins = Math.max(0, Math.round(mins));
+  const h = Math.floor(mins/60);
+  const m = mins % 60;
+  return h + 'h ' + pad2(m) + 'm';
 }
 
-const reportHour=document.getElementById('reportHour');
-const reportMin=document.getElementById('reportMin');
-const dutyHours=document.getElementById('dutyHours');
-const dutyMins=document.getElementById('dutyMins');
-const depHour=document.getElementById('depHour');
-const depMin=document.getElementById('depMin');
-const diffEl=document.getElementById('timeDifference');
-const doorEl=document.getElementById('doorClosed');
-
+/* main update */
 function update(){
   try{
-    const r=parseHM(reportHour,reportMin);
-    const duty=parseHM(dutyHours,dutyMins);
-    const dep=parseHM(depHour,depMin);
+    const r = parseHMFromInputs(reportHourEl, reportMinEl);
+    const duty = parseHMFromInputs(dutyHoursEl, dutyMinsEl);
+    const dep = parseHMFromInputs(depHourEl, depMinEl);
 
     if(isNaN(r) || isNaN(duty) || isNaN(dep)){
-      doorEl.textContent='—';
+      doorEl.textContent = '—';
       return;
     }
 
-    const maxActual=computeMaxActual(r);
-    const timeDiff=maxActual-duty;
-    diffEl.textContent=timeDiff;
+    const maxActual = computeMaxActual(r);
+    const timeDiff = maxActual - duty;
+    diffHidden && (diffHidden.textContent = String(timeDiff)); // internal
 
-    if(timeDiff<0) throw new Error("Invalid calculation");
+    if(timeDiff < 0) throw new Error('Invalid time difference');
 
-    const doorClosedMinutes=dep+timeDiff;
-    doorEl.textContent=minutesToHHMM(doorClosedMinutes);
-  } catch(e){
-    doorEl.textContent='Error 001';
+    const doorClosedMinutes = dep + timeDiff;
+    doorEl.textContent = minutesToHHMM(doorClosedMinutes);
+  } catch (err){
+    doorEl.textContent = 'Error. Verify your times';
   }
 }
 
-[reportHour,reportMin,dutyHours,dutyMins,depHour,depMin].forEach(el=>el.addEventListener('input',update));
+/* explain modal */
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modalContent = document.getElementById('modalContent');
+const explainLink = document.getElementById('explainLink');
+const closeModal = document.getElementById('closeModal');
 
+function openModal(){
+  // build user-friendly step-by-step explanation using current inputs
+  const rH = toNumberDigits(reportHourEl.value,23);
+  const rM = toNumberDigits(reportMinEl.value,59);
+  const dH = toNumberDigits(dutyHoursEl.value,23);
+  const dM = toNumberDigits(dutyMinsEl.value,59);
+  const depH = toNumberDigits(depHourEl.value,23);
+  const depM = toNumberDigits(depMinEl.value,59);
+
+  const reportText = (isNaN(rH) && isNaN(rM)) ? '—' : (pad2(isNaN(rH)?0:rH) + ':' + pad2(isNaN(rM)?0:rM));
+  const dutyText   = (isNaN(dH) && isNaN(dM)) ? '—' : (pad2(isNaN(dH)?0:dH) + ':' + pad2(isNaN(dM)?0:dM));
+  const depText    = (isNaN(depH) && isNaN(depM)) ? '—' : (pad2(isNaN(depH)?0:depH) + ':' + pad2(isNaN(depM)?0:depM));
+
+  // compute numbers where possible
+  let html = `<p><strong>Inputs</strong></p>`;
+  html += `<ul><li>Report Time (scheduled): ${reportText}</li>`;
+  html += `<li>Scheduled Duty (scheduled): ${dutyText}</li>`;
+  html += `<li>Scheduled Departure (scheduled): ${depText}</li></ul>`;
+
+  html += `<p><strong>Step-by-step calculation</strong></p>`;
+  html += `<ol>`;
+  html += `<li><strong>Determine Max Actual Duty</strong> — based on report time:
+           if report between 05:00 and 18:59 → Max Actual = 15:00; otherwise Max Actual = 13:00.</li>`;
+
+  // show selected max actual
+  let reportMinutes = isNaN(rH) ? NaN : ( (isNaN(rH)?0:rH)*60 + (isNaN(rM)?0:rM) );
+  let maxActual = isNaN(reportMinutes) ? '—' : ( computeMaxActual(reportMinutes) );
+  html += `<li>Max Actual Duty = ${ isNaN(reportMinutes) ? '—' : (Math.floor(maxActual/60)+ 'h ' + pad2(maxActual%60)+'m') }.</li>`;
+
+  // scheduled duty
+  let scheduledDutyMins = (isNaN(dH) ? 0 : dH*60) + (isNaN(dM) ? 0 : dM);
+  html += `<li>Calculate <em>Time Difference</em> = Max Actual − Scheduled Duty:
+           ${ isNaN(reportMinutes) ? '—' : `(${Math.floor(maxActual/60)}h ${pad2(maxActual%60)}m) − (${dutyText})` }.</li>`;
+
+  if(!isNaN(reportMinutes)){
+    const timeDiff = maxActual - scheduledDutyMins;
+    html += `<li>Time Difference = ${ formatDuration(timeDiff) } (${ timeDiff } minutes).</li>`;
+    html += `<li>Add Time Difference to Scheduled Departure:
+             ${depText} + ${ formatDuration(timeDiff) } = `;
+    const depMinutes = (isNaN(depH)?0:depH*60) + (isNaN(depM)?0:depM);
+    if(isNaN(depH) && isNaN(depM)){
+      html += '— (missing departure)';
+    } else {
+      const doorMin = depMinutes + timeDiff;
+      html += `${ minutesToHHMM(doorMin) } (local door closed time).</li>`;
+    }
+  } else {
+    html += `<li>Missing or invalid report time — cannot compute.</li>`;
+  }
+
+  html += `</ol>`;
+
+  html += `<p style="font-size:13px;color:#555;">Note: All inputs must be taken from the <em>Scheduled</em> snapshot, not from Updated data. This formula follows the duty max calculation described by the AFA IRROP Survival Guide.</p>`;
+  // include link citation
+  html += `<p style="font-size:12px;color:#666;margin-top:8px;">Source: AFA IRROP Survival Guide - Duty Max & Legal Rest.</p>`;
+
+  modalContent.innerHTML = html;
+  modalBackdrop.style.display = 'flex';
+  modalBackdrop.setAttribute('aria-hidden','false');
+}
+
+function closeModalFn(){
+  modalBackdrop.style.display = 'none';
+  modalBackdrop.setAttribute('aria-hidden','true');
+}
+
+explainLink.addEventListener('click', openModal);
+closeModal.addEventListener('click', closeModalFn);
+modalBackdrop.addEventListener('click', function(e){
+  if(e.target === modalBackdrop) closeModalFn();
+});
+
+/* initial update */
 update();
+
+/* make sure pressing Enter blurs and updates */
+[reportHourEl,reportMinEl,dutyHoursEl,dutyMinsEl,depHourEl,depMinEl].forEach(el=>{
+  el.addEventListener('keydown', (ev)=>{
+    if(ev.key === 'Enter'){ ev.preventDefault(); el.blur(); update(); }
+  });
+});
 </script>
 </body>
 </html>
