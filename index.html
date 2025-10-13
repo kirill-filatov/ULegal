@@ -98,7 +98,7 @@ footer{margin-top:16px;font-weight:600}
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
-    <footer>Version 8</footer>
+    <footer>Version 9</footer>
   </div>
 </div>
 
@@ -167,27 +167,24 @@ function update(){
   const dep=parseHMInputs(depHour,depMin);
   if(r==null||d==null){diffEl.textContent='—'; doorEl.textContent='—'; return;}
 
-  // Time difference formula
+  // Time Difference calculation
   const anchor = (r>=300 && r<=1139)?900:780; // 15:00 / 13:00
   let td = anchor - d;
   if(td<0) td+=1440;
   diffEl.textContent = formatDuration(td);
 
+  // Door Closed calculation respecting both time zones
   if(dep!=null){
-    // Convert report and departure times to UTC
-    const depUTC = dep - getOffset(depTz);
-    const reportUTC = r - getOffset(reportTz); // used to decide anchor
-    // Door closed = departure UTC + time difference
-    const doorUTC = depUTC + td;
-    // Convert back to local departure time
-    const localDoor = doorUTC + getOffset(depTz);
+    const depUTC = dep - getOffset(depTz);       // departure in UTC
+    const doorUTC = depUTC + td;                // add time difference in minutes
+    const localDoor = doorUTC + getOffset(depTz); // convert to local dep timezone
     doorEl.textContent = minutesToHHMM(localDoor);
   } else {
     doorEl.textContent='—';
   }
 }
 
-// Add event listeners
+// Add event listeners for **all inputs including TZ selects**
 [reportHour,reportMin,reportTz,dutyHours,dutyMins,blockHours,blockMins,depHour,depMin,depTz]
   .forEach(el=>el.addEventListener('input',update));
 </script>
