@@ -1,31 +1,37 @@
 <!doctype html>
-<html lang="en-GB"> <!-- en-GB forces 24-hour time format -->
+<html lang="en-GB"> <!-- en-GB enforces 24h time format -->
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Domestic Duty Calculator (USA zones)</title>
 <style>
   :root{
-    --card:#ffffff; --bg:#f7f8fa; --accent:#fcb900; --muted:#666;
-    --panel:#eef4ff; --panel-border:#c5d8ff; --input-bg:#f9f9f9;
+    --card:#ffffff;--bg:#f7f8fa;--accent:#fcb900;--muted:#666;
+    --panel:#eef4ff;--panel-border:#c5d8ff;--input-bg:#f9f9f9;
   }
-  html,body{height:100%;margin:0;font-family:Inter, Arial, sans-serif;background:var(--bg)}
+  html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg)}
   .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px}
-  .card{width:460px;background:var(--card);padding:24px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.08)}
-  .title{background:var(--accent);padding:10px;border-radius:8px;text-align:center;font-weight:700;margin-bottom:18px}
+  .card{width:480px;background:var(--card);padding:24px;border-radius:12px;
+        box-shadow:0 10px 30px rgba(0,0,0,0.08)}
+  .title{background:var(--accent);padding:10px;border-radius:8px;text-align:center;
+         font-weight:700;margin-bottom:18px}
   .row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
   .label{width:160px;font-weight:700;color:#222}
   .control{flex:1;display:flex;align-items:center;gap:8px}
-  input[type="time"], select, input[type="number"]{
-    padding:8px;border-radius:8px;border:1px solid #d0d0d0;background:var(--input-bg);font-size:15px;
+  input[type="time"],select,input[type="number"]{
+    padding:8px;border-radius:8px;border:1px solid #d0d0d0;
+    background:var(--input-bg);font-size:15px;
   }
-  input[type="time"]::-webkit-datetime-edit-ampm-field { display: none; } /* hides AM/PM in some browsers */
+  input[type="time"]::-webkit-datetime-edit-ampm-field{display:none;}
+  input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(0.5);}
+  input[type="time"]{appearance:none;-webkit-appearance:none;}
   .tz-select{min-width:170px}
   .inline-inputs{display:flex;gap:6px;align-items:center}
   .inline-inputs input[type="number"]{width:86px}
-  .output{background:var(--panel);border:1px solid var(--panel-border);padding:8px;border-radius:8px;font-weight:700}
-  .note{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}
-  footer{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
+  .output{background:var(--panel);border:1px solid var(--panel-border);padding:8px;
+          border-radius:8px;font-weight:700}
+  .note,footer{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}
+  footer{margin-top:16px;font-weight:600}
 </style>
 </head>
 <body>
@@ -49,11 +55,12 @@
       </div>
     </div>
 
-    <!-- Scheduled Duty -->
+    <!-- Scheduled Duty (now hours + minutes) -->
     <div class="row">
       <div class="label">Scheduled Duty</div>
-      <div class="control">
-        <input id="scheduledDuty" type="time" step="60" inputmode="numeric" />
+      <div class="control inline-inputs">
+        <input id="dutyHours" type="number" min="0" max="99" placeholder="Hours" />
+        <input id="dutyMins" type="number" min="0" max="59" placeholder="Minutes" />
         <select id="dutyTz" class="tz-select">
           <option data-offset="-300">Eastern (UTC-05:00)</option>
           <option data-offset="-360">Central (UTC-06:00)</option>
@@ -103,60 +110,68 @@
     </div>
 
     <div class="note">All times use 24-hour (military) format.</div>
+    <footer>Version 4</footer>
   </div>
 </div>
 
 <script>
-function parseTimeToMinutes(hhmm) {
-  if (!hhmm) return null;
-  const [hh, mm] = hhmm.split(':').map(Number);
-  return hh * 60 + mm;
+function parseTimeToMinutes(hhmm){
+  if(!hhmm)return null;
+  const [h,m]=hhmm.split(':').map(Number);
+  return h*60+m;
 }
-function minutesToHHMM(mins) {
-  if (mins == null) return '—';
-  mins = ((mins % 1440) + 1440) % 1440;
-  const h = String(Math.floor(mins/60)).padStart(2,'0');
-  const m = String(mins%60).padStart(2,'0');
+function parseHM(hoursEl,minsEl){
+  const h=parseInt(hoursEl.value||0,10),m=parseInt(minsEl.value||0,10);
+  return isNaN(h)&&isNaN(m)?null:h*60+m;
+}
+function minutesToHHMM(mins){
+  if(mins==null)return '—';
+  mins=((mins%1440)+1440)%1440;
+  const h=String(Math.floor(mins/60)).padStart(2,'0');
+  const m=String(mins%60).padStart(2,'0');
   return `${h}:${m}`;
 }
-function formatDuration(mins) {
-  if (mins == null) return '—';
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
+function formatDuration(mins){
+  if(mins==null)return '—';
+  const h=Math.floor(mins/60);
+  const m=mins%60;
   return `${h}h ${m}m`;
 }
-function getOffset(el) {
-  return Number(el.selectedOptions[0].dataset.offset || 0);
-}
+function getOffset(el){return Number(el.selectedOptions[0].dataset.offset||0);}
 
-const reportTime = document.getElementById('reportTime');
-const reportTz = document.getElementById('reportTz');
-const dutyTime = document.getElementById('scheduledDuty');
-const dutyTz = document.getElementById('dutyTz');
-const depTime = document.getElementById('scheduledDeparture');
-const depTz = document.getElementById('departTz');
-const diffEl = document.getElementById('timeDifference');
-const doorEl = document.getElementById('doorClosed');
+const reportTime=document.getElementById('reportTime');
+const reportTz=document.getElementById('reportTz');
+const dutyHours=document.getElementById('dutyHours');
+const dutyMins=document.getElementById('dutyMins');
+const dutyTz=document.getElementById('dutyTz');
+const depTime=document.getElementById('scheduledDeparture');
+const depTz=document.getElementById('departTz');
+const diffEl=document.getElementById('timeDifference');
+const doorEl=document.getElementById('doorClosed');
 
-function update() {
-  const r = parseTimeToMinutes(reportTime.value);
-  const d = parseTimeToMinutes(dutyTime.value);
-  const dep = parseTimeToMinutes(depTime.value);
-  if (r == null || d == null) { diffEl.textContent = '—'; doorEl.textContent='—'; return; }
+function update(){
+  const r=parseTimeToMinutes(reportTime.value);
+  const d=parseHM(dutyHours,dutyMins);
+  const dep=parseTimeToMinutes(depTime.value);
+  if(r==null||d==null){diffEl.textContent='—';doorEl.textContent='—';return;}
 
-  const anchor = (r >= 300 && r <= 1139) ? 900 : 780; // 15:00 or 13:00 in minutes
-  let td = anchor - d;
-  if (td < 0) td += 1440;
-  diffEl.textContent = formatDuration(td);
+  // Formula: if Report between 05:00–18:59 → (15:00 − Duty) else (13:00 − Duty)
+  const anchor=(r>=300&&r<=1139)?900:780; // 15:00 / 13:00
+  let td=anchor-d;
+  if(td<0)td+=1440;
+  diffEl.textContent=formatDuration(td);
 
-  if (dep != null) {
-    const depUTC = dep - getOffset(depTz);
-    const doorUTC = depUTC + td;
-    const localDoor = doorUTC + getOffset(depTz);
-    doorEl.textContent = minutesToHHMM(localDoor);
+  if(dep!=null){
+    const depUTC=dep-getOffset(depTz);
+    const doorUTC=depUTC+td;
+    const localDoor=doorUTC+getOffset(depTz);
+    doorEl.textContent=minutesToHHMM(localDoor);
+  }else{
+    doorEl.textContent='—';
   }
 }
-[reportTime, reportTz, dutyTime, dutyTz, depTime, depTz].forEach(el => el.addEventListener('input', update));
+[reportTime,reportTz,dutyHours,dutyMins,dutyTz,depTime,depTz]
+  .forEach(el=>el.addEventListener('input',update));
 </script>
 </body>
 </html>
