@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ULegal</title>
+<style>
+:root{
+  --navy:#054A91;
+  --primary:#005DAA;
+  --accent:#FFC425;
+  --bg:#F0F2F5;
+  --card-bg: rgba(255,255,255,0.92);
+  --card-border: rgba(4,64,120,0.08);
+  --input-bg: rgba(247,249,251,0.95);
+  --panel: rgba(230,240,250,0.95);
+  --panel-border: rgba(196,217,245,1);
+  --danger-bg: rgba(255,230,230,1);
+  --danger-border: rgba(220,60,60,1);
+  --danger-text: #A40000;
+  --muted:#6F7780;
+  --legal:#b0b9bf;
+}
+html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); overflow:hidden;}
+.centered{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,640px);box-sizing:border-box;}
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:18px;
+  padding:28px;
+  min-width:300px;
+  box-shadow:0 18px 40px rgba(4,64,120,0.12);
+  box-sizing:border-box;
+  backdrop-filter: blur(6px);
+}
+.header{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:16px;}
+.title{font-size:1.7rem;font-weight:700;color:var(--primary);line-height:1;text-align:center;}
+.subtitle{font-size:0.95rem;background:rgba(255,196,37,0.12);color:var(--accent);padding:6px 10px;border-radius:14px;font-weight:700;text-align:center;}
+.form-row{display:flex;align-items:center;gap:12px;margin:12px 0;justify-content:space-between;}
+.label{width:45%;font-weight:700;color:var(--navy);text-align:left;}
+.label .light-label{font-weight:400;font-size:0.85rem;color:#888;margin-left:6px;}
+.controls{width:55%;display:flex;gap:6px;align-items:center;justify-content:flex-end;}
+.inline-input{display:flex;gap:6px;align-items:center;}
+.input{width:50px;padding:8px;border-radius:8px;border:1px solid var(--panel-border);background:var(--input-bg);text-align:center;font-size:14px;outline:none;}
+.input::-webkit-outer-spin-button, .input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.output{min-width:112px;padding:10px;border-radius:10px;background:var(--panel);border:1px solid var(--panel-border);text-align:center;font-weight:800;color:var(--navy);}
+.output.error { background: var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger-text); }
+.meta-link{display:block;margin-top:8px;color:var(--primary);text-decoration:underline;cursor:pointer;font-size:0.95rem;text-align:center;}
+.version{font-size:12px;color:var(--muted);margin-top:10px;text-align:center;}
+.footer-credit{font-size:13px;color:var(--muted);margin-top:6px;text-align:center;font-weight:600;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:2000;}
+.modal{width:92%;max-width:760px;background:#fff;border-radius:12px;padding:18px;box-sizing:border-box;max-height:80vh;overflow:auto;}
+.modal h3{margin-top:0;}
+.modal pre{background:#f7f7f7;padding:10px;border-radius:8px;white-space:pre-wrap;font-size:13px;}
+.bottom-disclaimer{position:fixed;left:0;right:0;bottom:12px;padding:0 12px;text-align:center;font-size:12px;color:var(--legal);pointer-events:none;}
+@media(max-width:460px){
+  .centered{width:95vw;}
+  .input{width:45px;}
+  .output{min-width:112px;}
+}
+</style>
+</head>
+<body>
+
+<div class="centered">
+  <div id="calcCard" class="card" role="application" aria-labelledby="appTitle">
+    <div class="header">
+      <div id="appTitle" class="title">ULegal</div>
+      <div class="subtitle">Maximum Legal Duty Time Calculator</div>
+    </div>
+
+    <div class="form-row">
+      <div class="label">Report Time <span class="light-label">actual</span></div>
+      <div class="controls inline-input">
+        <input id="reportHour" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Report Hours" />
+        <input id="reportMin"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Report Minutes" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="label">Duty Hours <span class="light-label">scheduled</span></div>
+      <div class="controls inline-input">
+        <input id="dutyHours" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Duty Hours" />
+        <input id="dutyMins"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Duty Minutes" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="label">Departure <span class="light-label">scheduled</span></div>
+      <div class="controls inline-input">
+        <input id="depHour" class="input" type="text" inputmode="numeric" placeholder="Hours" aria-label="Departure Hours" />
+        <input id="depMin"  class="input" type="text" inputmode="numeric" placeholder="Minutes" aria-label="Departure Minutes" />
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-top:18px;">
+      <div class="label">Door Closed</div>
+      <div class="controls">
+        <div id="doorClosed" class="output" aria-live="polite">—</div>
+      </div>
+    </div>
+
+    <a id="explainLink" class="meta-link" role="button">How we calculated this?</a>
+
+    <div class="version">Public Beta 1.65</div>
+    <div class="footer-credit">© 2025 @kirillfilatov</div>
+  </div>
+</div>
+
+<div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal" role="document" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Calculation: Step-by-step (Report Time = actual)</h3>
+    <div id="modalContent"></div>
+    <div style="text-align:right;margin-top:12px;"><button id="closeModal">Close</button></div>
+  </div>
+</div>
+
+<div class="bottom-disclaimer" id="legalDisclaimer">
+  This tool is not an official United Airlines product. It is provided solely for informational purposes and should not be used as a substitute for the JCBA. Users should verify all results independently before operational action.
+</div>
+
+<script>
+// Utility functions
+function pad2(n){ return String(n).padStart(2,'0'); }
+function onlyDigits(s){ return (s||'').replace(/\D/g,''); }
+function toIntSafe(s, max){ const v = onlyDigits(s); if(v==='') return NaN; let n = parseInt(v,10); if(isNaN(n)) return NaN; if(n<0) n=0; if(typeof max === 'number' && n>max) n=max; return n; }
+function minutesFromInputs(hourEl, minEl){
+  const h = toIntSafe(hourEl.value, 23);
+  const m = toIntSafe(minEl.value, 59);
+  if(isNaN(h) && isNaN(m)) return NaN;
+  const hh = isNaN(h)?0:h;
+  const mm = isNaN(m)?0:m;
+  return hh*60 + mm;
+}
+function minutesToHHMM(mins){
+  mins = Math.round(mins);
+  mins = ((mins % 1440) + 1440) % 1440;
+  const h = Math.floor(mins/60), m = mins%60;
+  return pad2(h)+':'+pad2(m);
+}
+function computeMaxActual(reportMinutes){
+  if(reportMinutes >= 300 && reportMinutes <= 1139) return 15*60;
+  return 11*60 + 30;
+}
+
+// Elements
+const reportHourEl = document.getElementById('reportHour');
+const reportMinEl  = document.getElementById('reportMin');
+const dutyHoursEl  = document.getElementById('dutyHours');
+const dutyMinsEl   = document.getElementById('dutyMins');
+const depHourEl    = document.getElementById('depHour');
+const depMinEl     = document.getElementById('depMin');
+const doorEl       = document.getElementById('doorClosed');
+const explainLink  = document.getElementById('explainLink');
+const modalBackdrop= document.getElementById('modalBackdrop');
+const modalContent = document.getElementById('modalContent');
+const closeModalBtn= document.getElementById('closeModal');
+
+function wireInput(el, max){
+  el.addEventListener('input', ()=>{
+    el.value = onlyDigits(el.value);
+    if(el.value === '') { doorEl.textContent = '—'; doorEl.classList.remove('error'); doorEl.style.textAlign='center'; return; }
+    let n = parseInt(el.value,10);
+    if(isNaN(n)) return;
+    if(n < 0) n = 0;
+    if(n > max) n = max;
+    el.value = pad2(n);
+    update();
+  });
+  el.addEventListener('blur', ()=>{
+    if(el.value === '') return;
+    el.value = pad2(parseInt(onlyDigits(el.value) || '0',10));
+  });
+  el.addEventListener('paste', (ev) => { const text = (ev.clipboardData || window.clipboardData).getData('text'); if(/\D/.test(text)) ev.preventDefault(); });
+  el.addEventListener('keydown', (ev)=>{ if(ev.key.length===1 && /\D/.test(ev.key)) ev.preventDefault(); });
+}
+
+[reportHourEl, reportMinEl, dutyHoursEl, dutyMinsEl, depHourEl, depMinEl].forEach((el)=>{ wireInput(el, el.id.includes('Hour')?23:59); });
+
+function update(){
+  doorEl.classList.remove('error');
+  doorEl.style.textAlign='center';
+  const r = minutesFromInputs(reportHourEl, reportMinEl);
+  const duty = minutesFromInputs(dutyHoursEl, dutyMinsEl);
+  const dep = minutesFromInputs(depHourEl, depMinEl);
+  if(isNaN(r) || isNaN(duty) || isNaN(dep)){ doorEl.textContent='—'; return; }
+
+  const reportIsDay = (r >= 300 && r <= 1139);
+  const allowedScheduledMax = reportIsDay ? 13*60 : 11*60 + 30;
+  if(duty > allowedScheduledMax){
+    doorEl.classList.add('error');
+    doorEl.textContent='Error. Scheduled duty violates the contract.';
+    return;
+  }
+
+  const maxActual = computeMaxActual(r);
+  const timeDiff = maxActual - duty;
+  if(timeDiff < 0 || !isFinite(timeDiff)){
+    doorEl.classList.add('error');
+    doorEl.textContent='Error. Verify your times';
+    return;
+  }
+
+  const doorClosedMinutes = dep + timeDiff;
+  doorEl.textContent = minutesToHHMM(doorClosedMinutes);
+  doorEl.style.textAlign='center';
+}
+
+// Modal
+function openModal(){
+  const rH = parseInt(onlyDigits(reportHourEl.value)||'0',10);
+  const rM = parseInt(onlyDigits(reportMinEl.value)||'0',10);
+  const dH = parseInt(onlyDigits(dutyHoursEl.value)||'0',10);
+  const dM = parseInt(onlyDigits(dutyMinsEl.value)||'0',10);
+  const depH = parseInt(onlyDigits(depHourEl.value)||'0',10);
+  const depM = parseInt(onlyDigits(depMinEl.value)||'0',10);
+
+  const reportText = pad2(rH)+':'+pad2(rM);
+  const dutyText = pad2(dH)+':'+pad2(dM);
+  const depText = pad2(depH)+':'+pad2(depM);
+
+  const reportMinutes = rH*60 + rM;
+  const maxAct = computeMaxActual(reportMinutes);
+  const scheduledDutyMins = dH*60+dM;
+  const timeDiff = maxAct - scheduledDutyMins;
+  const depMinutes = depH*60 + depM;
+  const doorMin = depMinutes + timeDiff;
+
+  let html=`<p><strong>Inputs</strong></p>
+<ul>
+<li>Report Time (actual): ${reportText}</li>
+<li>Duty (scheduled): ${dutyText}</li>
+<li>Departure (scheduled): ${depText}</li>
+</ul>
+<p><strong>Step-by-step calculation</strong></p>
+<ol>
+<li>Determine Max Actual Duty based on Report Time (actual): ${reportMinutes>=300&&reportMinutes<=1139?'15:00':'13:00'}</li>
+<li>Time Difference = Max Actual − Duty = ${Math.floor(timeDiff/60)}h ${pad2(timeDiff%60)}m</li>
+<li>Door Closed = Departure + Time Difference = ${minutesToHHMM(doorMin)}</li>
+</ol>
+<p style="font-size:13px;color:#444;">Note: Inputs should be taken from the actual Report and Duty/Departure snapshot values.</p>`;
+  modalContent.innerHTML=html;
+  modalBackdrop.style.display='flex';
+  modalBackdrop.setAttribute('aria-hidden','false');
+}
+function closeModal(){ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); }
+
+explainLink.addEventListener('click', openModal);
+closeModalBtn.addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
+
+update();
+</script>
+</body>
+</html>
