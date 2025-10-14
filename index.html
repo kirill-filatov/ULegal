@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
-<link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
-<link rel="apple-touch-icon" sizes="76x76" href="icon-76.png">
 <title>ULegal</title>
 <style>
 :root{
@@ -34,10 +30,10 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 .title{font-size:1.7rem;font-weight:700;color:var(--primary);}
 .subtitle{font-size:0.95rem;background:rgba(255,196,37,0.12);color:var(--accent);padding:6px 10px;border-radius:14px;font-weight:700;text-align:center;}
 .form-row{display:flex;align-items:center;gap:12px;margin:12px 0;justify-content:space-between;flex-wrap:wrap;}
-.label{width:45%;text-align:left;font-weight:700;color:var(--navy);}
+.label{width:45%;font-weight:700;color:var(--navy);text-align:left;}
 .label .light-label{font-weight:400;font-size:0.85rem;color:#888;margin-left:6px;}
-.controls{width:55%;display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
-.inline-input{display:flex;gap:6px;align-items:center;}
+.controls{width:55%;display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;text-align:right;}
+.inline-input{display:flex;gap:6px;align-items:center;justify-content:flex-end;}
 .input{width:48px;padding:8px;border-radius:8px;border:1px solid var(--panel-border);background:var(--input-bg);text-align:center;font-size:14px;outline:none;}
 .input::-webkit-outer-spin-button, .input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .output{min-width:112px;padding:10px;border-radius:10px;background:var(--panel);border:1px solid var(--panel-border);text-align:center;font-weight:800;color:var(--navy);}
@@ -67,7 +63,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 
     <div class="form-row">
       <div class="label">Report Time <span class="light-label">actual</span></div>
-      <div class="controls inline-input" style="justify-content:flex-end;">
+      <div class="controls inline-input">
         <input id="reportHour" class="input" type="text" inputmode="numeric" placeholder="Hours" />
         <input id="reportMin" class="input" type="text" inputmode="numeric" placeholder="Minutes" />
       </div>
@@ -75,7 +71,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 
     <div class="form-row">
       <div class="label">Duty Hours <span class="light-label">scheduled</span></div>
-      <div class="controls inline-input" style="justify-content:flex-end;">
+      <div class="controls inline-input">
         <input id="dutyHours" class="input" type="text" inputmode="numeric" placeholder="Hours" />
         <input id="dutyMins" class="input" type="text" inputmode="numeric" placeholder="Minutes" />
       </div>
@@ -83,7 +79,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 
     <div class="form-row">
       <div class="label">Departure <span class="light-label">scheduled</span></div>
-      <div class="controls inline-input" style="justify-content:flex-end;">
+      <div class="controls inline-input">
         <input id="depHour" class="input" type="text" inputmode="numeric" placeholder="Hours" />
         <input id="depMin" class="input" type="text" inputmode="numeric" placeholder="Minutes" />
       </div>
@@ -91,8 +87,8 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 
     <div class="form-row" style="margin-top:18px;">
       <div class="label">Door Closed</div>
-      <div class="controls" style="justify-content:flex-end;">
-        <div id="doorClosed" class="output" aria-live="polite" style="text-align:center;">—</div>
+      <div class="controls">
+        <div id="doorClosed" class="output" aria-live="polite">—</div>
       </div>
     </div>
 
@@ -116,7 +112,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 </div>
 
 <script>
-// JS logic: numeric-only inputs, padding, duty max check, door closed calculation, modal explanations
+// Numeric input padding and validation
 function pad2(n){return String(n).padStart(2,'0');}
 function onlyDigits(s){return (s||'').replace(/\D/g,'');}
 function toIntSafe(s,max){const v=onlyDigits(s);if(v==='') return NaN;let n=parseInt(v,10);if(isNaN(n)) return NaN;if(n<0)n=0;if(typeof max==='number'&&n>max)n=max;return n;}
@@ -136,7 +132,7 @@ const modalBackdrop=document.getElementById('modalBackdrop');
 const modalContent=document.getElementById('modalContent');
 const closeModalBtn=document.getElementById('closeModal');
 
-function wireInput(el,max){el.addEventListener('input',()=>{el.value=onlyDigits(el.value);if(el.value===''){doorEl.textContent='—';doorEl.classList.remove('error');doorEl.style.textAlign='center';return;}let n=parseInt(el.value,10);if(isNaN(n))return;if(n<0)n=0;if(n>max)n=max;el.value=pad2(n);update();});el.addEventListener('blur',()=>{if(el.value==='')return;el.value=pad2(parseInt(onlyDigits(el.value)||'0',10));});el.addEventListener('paste',(ev)=>{const text=(ev.clipboardData||window.clipboardData).getData('text');if(/\D/.test(text))ev.preventDefault();});el.addEventListener('keydown',(ev)=>{if(ev.key.length===1&&/\D/.test(ev.key))ev.preventDefault();});}
+function wireInput(el,max){el.addEventListener('input',()=>{el.value=onlyDigits(el.value);if(el.value===''){doorEl.textContent='—';doorEl.classList.remove('error');return;}let n=parseInt(el.value,10);if(isNaN(n))return;if(n<0)n=0;if(n>max)n=max;el.value=pad2(n);update();});el.addEventListener('blur',()=>{if(el.value==='')return;el.value=pad2(parseInt(onlyDigits(el.value)||'0',10));});el.addEventListener('paste',(ev)=>{const text=(ev.clipboardData||window.clipboardData).getData('text');if(/\D/.test(text))ev.preventDefault();});el.addEventListener('keydown',(ev)=>{if(ev.key.length===1&&/\D/.test(ev.key))ev.preventDefault();});}
 [reportHourEl,reportMinEl,dutyHoursEl,dutyMinsEl,depHourEl,depMinEl].forEach(el=>{wireInput(el,el.id.includes('Hour')?23:59);});
 
 function update(){
