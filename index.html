@@ -34,20 +34,44 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 .label{flex:0 0 auto;text-align:left;font-weight:700;color:var(--navy);white-space:nowrap;}
 .label .light-label{font-weight:400;font-size:0.85rem;color:#888;margin-left:6px;display:inline-block;}
 .controls{flex:0 0 auto;display:flex;justify-content:flex-end;align-items:center;}
-.inline-input{display:flex;gap:6px;align-items:center;}
+.inline-input{display:flex;gap:6px;align-items:center;justify-content:flex-end;}
+
+/* Dynamic width and font for inputs */
 .input{
-  width:50px; 
-  padding:8px;
-  border-radius:8px;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 40px;
+  max-width: 60px;
+  padding: 6px;
+  border-radius: 8px;
   border:1px solid var(--panel-border);
-  background:var(--input-bg);
+  background: var(--input-bg);
   text-align:center;
-  font-size: clamp(12px, 3vw, 16px); /* dynamically scales */
+  font-size: clamp(12px,2.5vw,16px);
   box-sizing:border-box;
 }
-.input::-webkit-outer-spin-button, .input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.output{min-width:124px;padding:10px;border-radius:10px;background:var(--panel);border:1px solid var(--panel-border);text-align:center;font-weight:800;color:var(--navy);}
-.output.error { background: var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger-text); }
+.input::-webkit-outer-spin-button, .input::-webkit-inner-spin-button { -webkit-appearance:none;margin:0; }
+
+.output{
+  min-width:120px;
+  max-width:100%;
+  padding:10px;
+  border-radius:10px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  text-align:center;
+  font-weight:800;
+  color:var(--navy);
+  word-wrap: break-word;
+  font-size: clamp(12px,3vw,16px);
+}
+.output.error {
+  background: var(--danger-bg);
+  border:1px solid var(--danger-border);
+  color: var(--danger-text);
+  font-size: clamp(10px,2.5vw,14px);
+}
+
 .meta-link{display:block;margin-top:8px;color:var(--primary);text-decoration:underline;cursor:pointer;font-size:0.95rem;text-align:center;}
 .version{font-size:12px;color:var(--muted);margin-top:10px;text-align:center;}
 .footer-credit{font-size:13px;color:var(--muted);margin-top:6px;text-align:center;font-weight:600;}
@@ -113,7 +137,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
     </div>
 
     <a id="explainLink" class="meta-link">How we calculated this?</a>
-    <div class="version">Public Beta 1.70</div>
+    <div class="version">Public Beta 1.71</div>
     <div class="footer-credit">© 2025 @kirillfilatov</div>
   </div>
 </div>
@@ -131,7 +155,6 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 </div>
 
 <script>
-// Utility functions
 function pad2(n){return String(n).padStart(2,'0');}
 function onlyDigits(s){return (s||'').replace(/\D/g,'');}
 function toIntSafe(s,max){const v=onlyDigits(s);if(v==='') return NaN;let n=parseInt(v,10);if(isNaN(n)) return NaN;if(n<0)n=0;if(typeof max==='number'&&n>max)n=max;return n;}
@@ -139,7 +162,6 @@ function minutesFromInputs(hourEl,minEl){const h=toIntSafe(hourEl.value,23);cons
 function minutesToHHMM(mins){mins=Math.round(mins);mins=((mins%1440)+1440)%1440;const h=Math.floor(mins/60),m=mins%60;return pad2(h)+':'+pad2(m);}
 function computeMaxActual(reportMinutes){return (reportMinutes>=300&&reportMinutes<=1139)?15*60:11*60+30;}
 
-// Elements
 const reportHourEl=document.getElementById('reportHour');
 const reportMinEl=document.getElementById('reportMin');
 const dutyHoursEl=document.getElementById('dutyHours');
@@ -152,7 +174,6 @@ const modalBackdrop=document.getElementById('modalBackdrop');
 const modalContent=document.getElementById('modalContent');
 const closeModalBtn=document.getElementById('closeModal');
 
-// Wire input fields
 function wireInput(el,max){
   el.addEventListener('input',()=>{
     el.value=onlyDigits(el.value);
@@ -166,7 +187,6 @@ function wireInput(el,max){
 }
 [reportHourEl,reportMinEl,dutyHoursEl,dutyMinsEl,depHourEl,depMinEl].forEach(el=>{wireInput(el,el.id.includes('Hour')?23:59);});
 
-// Update calculation
 function update(){
   doorEl.classList.remove('error');doorEl.style.textAlign='center';
   const r=minutesFromInputs(reportHourEl,reportMinEl);
@@ -175,12 +195,18 @@ function update(){
   if(isNaN(r)||isNaN(duty)||isNaN(dep)){doorEl.textContent='—';return;}
   const reportIsDay=(r>=300&&r<=1139);
   const allowedScheduledMax=reportIsDay?13*60:11*60+30;
-  if(duty>allowedScheduledMax){doorEl.classList.add('error');doorEl.textContent='Error. Scheduled duty violates the contract.';return;}
+  if(duty>allowedScheduledMax){
+    doorEl.classList.add('error');
+    doorEl.textContent='Error. Scheduled duty violates the contract.';
+    doorEl.style.fontSize='clamp(10px,2.5vw,14px)';
+    return;
+  }
   const maxActual=computeMaxActual(r);
   const timeDiff=maxActual-duty;
   if(timeDiff<0||!isFinite(timeDiff)){doorEl.classList.add('error');doorEl.textContent='Error. Verify your times';return;}
   const doorClosedMinutes=dep+timeDiff;
   doorEl.textContent=minutesToHHMM(doorClosedMinutes);
+  doorEl.style.fontSize='clamp(12px,3vw,16px)';
   doorEl.style.textAlign='center';
 }
 
