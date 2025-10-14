@@ -35,7 +35,16 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 .label .light-label{font-weight:400;font-size:0.85rem;color:#888;margin-left:6px;display:inline-block;}
 .controls{flex:0 0 auto;display:flex;justify-content:flex-end;align-items:center;}
 .inline-input{display:flex;gap:6px;align-items:center;}
-.input{width:60px;padding:8px;border-radius:8px;border:1px solid var(--panel-border);background:var(--input-bg);text-align:center;font-size:14px;box-sizing:border-box;}
+.input{
+  width:50px; 
+  padding:8px;
+  border-radius:8px;
+  border:1px solid var(--panel-border);
+  background:var(--input-bg);
+  text-align:center;
+  font-size: clamp(12px, 3vw, 16px); /* dynamically scales */
+  box-sizing:border-box;
+}
 .input::-webkit-outer-spin-button, .input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .output{min-width:124px;padding:10px;border-radius:10px;background:var(--panel);border:1px solid var(--panel-border);text-align:center;font-weight:800;color:var(--navy);}
 .output.error { background: var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger-text); }
@@ -47,8 +56,8 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
 .modal h3{margin-top:0;}
 .bottom-disclaimer{position:fixed;bottom:0;width:100%;padding:12px 8px;text-align:center;font-size:12px;color:var(--legal);background:var(--bg);box-sizing:border-box;z-index:1000;border-top:1px solid #ccc;}
 @media(max-width:460px){
-  .input{width:50px;}
-  .output{min-width:110px;}
+  .input{ width:45px; }
+  .output{ min-width:110px; }
 }
 </style>
 </head>
@@ -104,7 +113,7 @@ html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Seg
     </div>
 
     <a id="explainLink" class="meta-link">How we calculated this?</a>
-    <div class="version">Public Beta 1.69</div>
+    <div class="version">Public Beta 1.70</div>
     <div class="footer-credit">© 2025 @kirillfilatov</div>
   </div>
 </div>
